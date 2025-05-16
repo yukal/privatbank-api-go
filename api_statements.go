@@ -67,3 +67,27 @@ func (a *API) GetStatementsBalance(acc, startDate, endDate string, limit uint16)
 
 	return
 }
+
+// Отримання серверних дат за певний інтервал для отримання транзакцій.
+//
+//	acc        - номер банківського рахунку
+//	startDate  - ДД-ММ-РРРР - дата початку (обов’язковий параметр)
+//	endDate    - ДД-ММ-РРРР - дата закінчення (необов’язковий параметр)
+//	followId   - ID наступної пачки з відповіді (необов’язковий параметр)
+//	limit      - кількість записів у пачці (за замовчуванням 20), максимальне значення - 500, рекомендується використовувати не більше 100
+func (a *API) GetStatementsTransactions(acc, startDate, endDate string, limit uint16) (resp *http.Response, err error) {
+	strURL := fmt.Sprintf("/statements/transactions?acc=%s&startDate=%s&endDate=%s&limit=%d",
+		acc,
+		startDate,
+		endDate,
+		limit,
+	)
+
+	if resp, err = a.agent.requestGet(strURL); err != nil {
+		return
+	}
+
+	a.logResponse(resp)
+
+	return
+}
