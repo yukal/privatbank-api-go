@@ -1,6 +1,7 @@
 package privatbank
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -35,6 +36,30 @@ import (
 //	}
 func (a *API) GetStatementsSettings() (resp *http.Response, err error) {
 	if resp, err = a.agent.requestGet("/statements/settings"); err != nil {
+		return
+	}
+
+	a.logResponse(resp)
+
+	return
+}
+
+// Отримання серверних дат за певний інтервал для отримання балансів.
+//
+//	acc        - номер банківського рахунку
+//	startDate  - ДД-ММ-РРРР - дата початку (обов’язковий параметр)
+//	endDate    - ДД-ММ-РРРР - дата закінчення (необов’язковий параметр)
+//	followId   - ID наступної пачки з відповіді (необов’язковий параметр)
+//	limit      - кількість записів у пачці (за замовчуванням 20), максимальне значення - 500, рекомендується використовувати не більше 100
+func (a *API) GetStatementsBalance(acc, startDate, endDate string, limit uint16) (resp *http.Response, err error) {
+	apiURL := fmt.Sprintf("/statements/balance?acc=%s&startDate=%s&endDate=%s&limit=%d",
+		acc,
+		startDate,
+		endDate,
+		limit,
+	)
+
+	if resp, err = a.agent.requestGet(apiURL); err != nil {
 		return
 	}
 
