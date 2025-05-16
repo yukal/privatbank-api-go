@@ -1,6 +1,8 @@
 package privatbank
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
 )
 
@@ -28,6 +30,25 @@ import (
 //	]
 func (a *API) GetPaysheetsJournal() (resp *http.Response, err error) {
 	if resp, err = a.agent.requestGet("/paysheets/journal"); err != nil {
+		return
+	}
+
+	a.logResponse(resp)
+
+	return
+}
+
+func (a *API) GetJournalInbox(dateBegin, dateEnd string) (resp *http.Response, err error) {
+	body := bytes.NewBuffer(
+		[]byte(
+			fmt.Sprintf(`{"dateBegin":"%s", "dateEnd": "%s", "limit": "3"}`,
+				dateBegin,
+				dateEnd,
+			),
+		),
+	)
+
+	if resp, err = a.agent.requestPost("/proxy/edoc/journal/inbox", body); err != nil {
 		return
 	}
 
