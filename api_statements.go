@@ -91,3 +91,21 @@ func (a *API) GetStatementsTransactions(acc, startDate, endDate string, limit ui
 
 	return
 }
+
+// Отримати проміжні дані – з lastday по today
+func (a *API) GetStatementsInterimBalance(acc, startDate, endDate string, limit uint16) (resp *http.Response, err error) {
+	apiURL := fmt.Sprintf("/statements/balance/interim?acc=%s&startDate=%s&endDate=%s&limit=%d",
+		acc,
+		startDate,
+		endDate,
+		limit,
+	)
+
+	if resp, err = a.agent.requestGet(apiURL); err != nil {
+		return
+	}
+
+	a.logResponse(resp)
+
+	return
+}
