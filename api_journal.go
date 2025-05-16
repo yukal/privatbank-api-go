@@ -75,3 +75,22 @@ func (a *API) GetJournalOutbox(dateBegin, dateEnd string) (resp *http.Response, 
 
 	return
 }
+
+func (a *API) GetJournalAll(dateBegin, dateEnd string) (resp *http.Response, err error) {
+	body := bytes.NewBuffer(
+		[]byte(
+			fmt.Sprintf(`{"dateBegin":"%s", "dateEnd": "%s", "limit": "3"}`,
+				dateBegin,
+				dateEnd,
+			),
+		),
+	)
+
+	if resp, err = a.agent.requestPost("/proxy/edoc/journal/all", body); err != nil {
+		return
+	}
+
+	a.logResponse(resp)
+
+	return
+}
