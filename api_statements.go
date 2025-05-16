@@ -127,3 +127,20 @@ func (a *API) GetStatementsInterimTransactions(acc, startDate, endDate string, l
 
 	return
 }
+
+// Отримати дані за останній підсумковий день
+func (a *API) GetStatementsFinalBalance(acc, startDate string, limit uint16) (resp *http.Response, err error) {
+	apiURL := fmt.Sprintf("/statements/balance/final?acc=%s&startDate=%s&limit=%d",
+		acc,
+		startDate,
+		limit,
+	)
+
+	if resp, err = a.agent.requestGet(apiURL); err != nil {
+		return
+	}
+
+	a.logResponse(resp)
+
+	return
+}
