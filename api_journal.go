@@ -29,7 +29,7 @@ import (
 //	  ...
 //	]
 func (a *API) GetPaysheetsJournal() (resp *http.Response, err error) {
-	if resp, err = a.httpAgent.requestGet("/paysheets/journal"); err != nil {
+	if resp, err = a.httpAgent.Get("/paysheets/journal"); err != nil {
 		return
 	}
 
@@ -48,7 +48,7 @@ func (a *API) GetJournalInbox(dateBegin, dateEnd string) (resp *http.Response, e
 		),
 	)
 
-	if resp, err = a.httpAgent.requestPost("/proxy/edoc/journal/inbox", body); err != nil {
+	if resp, err = a.httpAgent.Post("/proxy/edoc/journal/inbox", body); err != nil {
 		return
 	}
 
@@ -67,7 +67,7 @@ func (a *API) GetJournalOutbox(dateBegin, dateEnd string) (resp *http.Response, 
 		),
 	)
 
-	if resp, err = a.httpAgent.requestPost("/proxy/edoc/journal/outbox", body); err != nil {
+	if resp, err = a.httpAgent.Post("/proxy/edoc/journal/outbox", body); err != nil {
 		return
 	}
 
@@ -86,7 +86,7 @@ func (a *API) GetJournalAll(dateBegin, dateEnd string) (resp *http.Response, err
 		),
 	)
 
-	if resp, err = a.httpAgent.requestPost("/proxy/edoc/journal/all", body); err != nil {
+	if resp, err = a.httpAgent.Post("/proxy/edoc/journal/all", body); err != nil {
 		return
 	}
 

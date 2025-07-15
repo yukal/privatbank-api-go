@@ -10,7 +10,7 @@ import (
 
 // Отримання інформації по платежу
 func (a *API) GetPaymentInfo(paymentRef string) (resp *http.Response, err error) {
-	if resp, err = a.httpAgent.requestGet("/proxy/payment/get?ref=" + paymentRef); err != nil {
+	if resp, err = a.httpAgent.Get("/proxy/payment/get?ref=" + paymentRef); err != nil {
 		return
 	}
 
@@ -30,7 +30,7 @@ func (a *API) GetReceipt(account, reference, refn string) (resp *http.Response, 
 		),
 	)
 
-	if resp, err = a.httpAgent.requestPostOctet("/paysheets/print_receipt", body); err != nil {
+	if resp, err = a.httpAgent.PostOctet("/paysheets/print_receipt", body); err != nil {
 		return
 	}
 

@@ -39,7 +39,7 @@ func (a *apiHttpAgent) setBasicHeaders(req *http.Request) {
 	req.Header.Add("token", a.token)
 }
 
-func (a *apiHttpAgent) requestGet(path string) (*http.Response, error) {
+func (a *apiHttpAgent) Get(path string) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodGet, _API+path, nil)
 
 	if err != nil {
@@ -50,7 +50,7 @@ func (a *apiHttpAgent) requestGet(path string) (*http.Response, error) {
 	return a.client.Do(req)
 }
 
-func (a *apiHttpAgent) requestPost(path string, body io.Reader) (*http.Response, error) {
+func (a *apiHttpAgent) Post(path string, body io.Reader) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodPost, _API+path, body)
 
 	if err != nil {
@@ -61,7 +61,7 @@ func (a *apiHttpAgent) requestPost(path string, body io.Reader) (*http.Response,
 	return a.client.Do(req)
 }
 
-func (a *apiHttpAgent) requestPostOctet(path string, body io.Reader) (*http.Response, error) {
+func (a *apiHttpAgent) PostOctet(path string, body io.Reader) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodPost, _API+path, body)
 
 	if err != nil {

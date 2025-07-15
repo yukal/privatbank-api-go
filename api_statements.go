@@ -35,7 +35,7 @@ import (
 //	  }
 //	}
 func (a *API) GetStatementsSettings() (resp *http.Response, err error) {
-	if resp, err = a.httpAgent.requestGet("/statements/settings"); err != nil {
+	if resp, err = a.httpAgent.Get("/statements/settings"); err != nil {
 		return
 	}
 
@@ -59,7 +59,7 @@ func (a *API) GetStatementsBalance(acc, startDate, endDate string, limit uint16)
 		limit,
 	)
 
-	if resp, err = a.httpAgent.requestGet(apiURL); err != nil {
+	if resp, err = a.httpAgent.Get(apiURL); err != nil {
 		return
 	}
 
@@ -83,7 +83,7 @@ func (a *API) GetStatementsTransactions(acc, startDate, endDate string, limit ui
 		limit,
 	)
 
-	if resp, err = a.httpAgent.requestGet(strURL); err != nil {
+	if resp, err = a.httpAgent.Get(strURL); err != nil {
 		return
 	}
 
@@ -101,7 +101,7 @@ func (a *API) GetStatementsInterimBalance(acc, startDate, endDate string, limit 
 		limit,
 	)
 
-	if resp, err = a.httpAgent.requestGet(apiURL); err != nil {
+	if resp, err = a.httpAgent.Get(apiURL); err != nil {
 		return
 	}
 
@@ -119,7 +119,7 @@ func (a *API) GetStatementsInterimTransactions(acc, startDate, endDate string, l
 		limit,
 	)
 
-	if resp, err = a.httpAgent.requestGet(strURL); err != nil {
+	if resp, err = a.httpAgent.Get(strURL); err != nil {
 		return
 	}
 
@@ -136,7 +136,7 @@ func (a *API) GetStatementsFinalBalance(acc, startDate string, limit uint16) (re
 		limit,
 	)
 
-	if resp, err = a.httpAgent.requestGet(apiURL); err != nil {
+	if resp, err = a.httpAgent.Get(apiURL); err != nil {
 		return
 	}
 
@@ -154,7 +154,7 @@ func (a *API) GetStatementsFinalTransactions(acc, startDate, endDate string, lim
 		limit,
 	)
 
-	if resp, err = a.httpAgent.requestGet(strURL); err != nil {
+	if resp, err = a.httpAgent.Get(strURL); err != nil {
 		return
 	}
 

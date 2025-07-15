@@ -70,7 +70,7 @@ func (a *API) GetCurrencyHistory(startDate, endDate string) (resp *http.Response
 		endDate,
 	)
 
-	if resp, err = a.httpAgent.requestGet(strURL); err != nil {
+	if resp, err = a.httpAgent.Get(strURL); err != nil {
 		return
 	}
 
