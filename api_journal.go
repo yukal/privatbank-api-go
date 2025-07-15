@@ -39,6 +39,8 @@ func (a *API) GetPaysheetsJournal() (resp *http.Response, err error) {
 }
 
 func (a *API) GetJournalInbox(dateBegin, dateEnd string) (resp *http.Response, err error) {
+	apiPath := "/proxy/edoc/journal/inbox"
+
 	body := bytes.NewBuffer(
 		[]byte(
 			fmt.Sprintf(`{"dateBegin":"%s", "dateEnd": "%s", "limit": "3"}`,
@@ -48,7 +50,8 @@ func (a *API) GetJournalInbox(dateBegin, dateEnd string) (resp *http.Response, e
 		),
 	)
 
-	if resp, err = a.httpAgent.Post("/proxy/edoc/journal/inbox", body, nil); err != nil {
+	if resp, err = a.httpAgent.Post(
+		apiPath, body, nil); err != nil {
 		return
 	}
 
@@ -58,6 +61,8 @@ func (a *API) GetJournalInbox(dateBegin, dateEnd string) (resp *http.Response, e
 }
 
 func (a *API) GetJournalOutbox(dateBegin, dateEnd string) (resp *http.Response, err error) {
+	apiPath := "/proxy/edoc/journal/outbox"
+
 	body := bytes.NewBuffer(
 		[]byte(
 			fmt.Sprintf(`{"dateBegin":"%s", "dateEnd": "%s", "limit": "3"}`,
@@ -67,7 +72,8 @@ func (a *API) GetJournalOutbox(dateBegin, dateEnd string) (resp *http.Response, 
 		),
 	)
 
-	if resp, err = a.httpAgent.Post("/proxy/edoc/journal/outbox", body, nil); err != nil {
+	if resp, err = a.httpAgent.Post(
+		apiPath, body, nil); err != nil {
 		return
 	}
 
@@ -77,6 +83,8 @@ func (a *API) GetJournalOutbox(dateBegin, dateEnd string) (resp *http.Response, 
 }
 
 func (a *API) GetJournalAll(dateBegin, dateEnd string) (resp *http.Response, err error) {
+	apiPath := "/proxy/edoc/journal/all"
+
 	body := bytes.NewBuffer(
 		[]byte(
 			fmt.Sprintf(`{"dateBegin":"%s", "dateEnd": "%s", "limit": "3"}`,
@@ -86,7 +94,8 @@ func (a *API) GetJournalAll(dateBegin, dateEnd string) (resp *http.Response, err
 		),
 	)
 
-	if resp, err = a.httpAgent.Post("/proxy/edoc/journal/all", body, nil); err != nil {
+	if resp, err = a.httpAgent.Post(
+		apiPath, body, nil); err != nil {
 		return
 	}
 

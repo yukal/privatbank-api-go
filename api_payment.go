@@ -20,6 +20,8 @@ func (a *API) GetPaymentInfo(paymentRef string) (resp *http.Response, err error)
 }
 
 func (a *API) GetReceipt(account, reference, refn string) (resp *http.Response, err error) {
+	apiPath := "/paysheets/print_receipt"
+
 	body := bytes.NewBuffer(
 		[]byte(
 			fmt.Sprintf(`{"transactions":[{"account": "%s", "reference": "%s", "refn": "%s"}],"perPage": 4}`,
@@ -34,7 +36,8 @@ func (a *API) GetReceipt(account, reference, refn string) (resp *http.Response, 
 		"Accept": "application/octet-stream",
 	}
 
-	if resp, err = a.httpAgent.Post("/paysheets/print_receipt", body, headers); err != nil {
+	if resp, err = a.httpAgent.Post(
+		apiPath, body, headers); err != nil {
 		return
 	}
 
