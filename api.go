@@ -12,7 +12,7 @@ const _API = "https://acp.privatbank.ua/api"
 
 type API struct {
 	Logger    io.Writer
-	httpAgent *apiHttpAgent
+	httpAgent *HttpAgent
 	_EOL      string
 }
 
@@ -30,7 +30,7 @@ func NewAPI(options APIOptions) *API {
 	}
 
 	return &API{
-		httpAgent: newAPIHttpAgent(options.Token, options.Encoding),
+		httpAgent: NewHttpAgent(options.Token, options.Encoding),
 		Logger:    options.Logger,
 		_EOL:      eol,
 	}
