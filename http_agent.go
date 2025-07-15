@@ -1,13 +1,18 @@
 package privatbank
 
+// Package provides a simple HTTP agent for making requests to an API.
+// It includes methods for GET and POST requests, setting headers, and handling responses.
+
 import (
+	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"strings"
 	"time"
 )
 
-const _USER_AGENT = "golang-http-req"
+const USER_AGENT = "golang-http-req"
 
 type HttpAgent struct {
 	token    string
@@ -15,6 +20,16 @@ type HttpAgent struct {
 
 	client *http.Client
 	// req    *http.Request
+}
+
+// HTTPError represents an HTTP error with status code and message.
+type HTTPError struct {
+	StatusCode int
+	Message    string
+}
+
+func (e *HTTPError) Error() string {
+	return e.Message
 }
 
 func NewHttpAgent(token, encoding string) *HttpAgent {
@@ -34,7 +49,7 @@ func NewHttpAgent(token, encoding string) *HttpAgent {
 }
 
 func (a *HttpAgent) setBasicHeaders(req *http.Request) {
-	req.Header.Add("User-Agent", _USER_AGENT)
+	req.Header.Add("User-Agent", USER_AGENT)
 	req.Header.Add("Content-Type", "application/json;charset="+a.encoding)
 	req.Header.Add("token", a.token)
 }
@@ -66,4 +81,17 @@ func (a *HttpAgent) Post(path string, body io.Reader, headers map[string]string)
 	}
 
 	return a.client.Do(req)
+}
+
+func ExtractFilenameFromContentDisposition(header http.Header) (filename string, err error) {
+	var params map[string]string
+
+	if _, params, err = mime.ParseMediaType(
+		header.Get("Content-Disposition")); err != nil {
+		fmt.Printf("Error parsing Content-Disposition: %v\n", err)
+		return
+	}
+
+	filename = params["filename"]
+	return
 }
