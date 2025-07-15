@@ -30,7 +30,11 @@ func (a *API) GetReceipt(account, reference, refn string) (resp *http.Response, 
 		),
 	)
 
-	if resp, err = a.httpAgent.PostOctet("/paysheets/print_receipt", body); err != nil {
+	headers := map[string]string{
+		"Accept": "application/octet-stream",
+	}
+
+	if resp, err = a.httpAgent.Post("/paysheets/print_receipt", body, headers); err != nil {
 		return
 	}
 

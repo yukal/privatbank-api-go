@@ -48,7 +48,7 @@ func (a *API) GetJournalInbox(dateBegin, dateEnd string) (resp *http.Response, e
 		),
 	)
 
-	if resp, err = a.httpAgent.Post("/proxy/edoc/journal/inbox", body); err != nil {
+	if resp, err = a.httpAgent.Post("/proxy/edoc/journal/inbox", body, nil); err != nil {
 		return
 	}
 
@@ -67,7 +67,7 @@ func (a *API) GetJournalOutbox(dateBegin, dateEnd string) (resp *http.Response, 
 		),
 	)
 
-	if resp, err = a.httpAgent.Post("/proxy/edoc/journal/outbox", body); err != nil {
+	if resp, err = a.httpAgent.Post("/proxy/edoc/journal/outbox", body, nil); err != nil {
 		return
 	}
 
@@ -86,7 +86,7 @@ func (a *API) GetJournalAll(dateBegin, dateEnd string) (resp *http.Response, err
 		),
 	)
 
-	if resp, err = a.httpAgent.Post("/proxy/edoc/journal/all", body); err != nil {
+	if resp, err = a.httpAgent.Post("/proxy/edoc/journal/all", body, nil); err != nil {
 		return
 	}
 

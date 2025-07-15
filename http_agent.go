@@ -50,7 +50,7 @@ func (a *apiHttpAgent) Get(path string) (*http.Response, error) {
 	return a.client.Do(req)
 }
 
-func (a *apiHttpAgent) Post(path string, body io.Reader) (*http.Response, error) {
+func (a *apiHttpAgent) Post(path string, body io.Reader, headers map[string]string) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodPost, _API+path, body)
 
 	if err != nil {
@@ -58,18 +58,12 @@ func (a *apiHttpAgent) Post(path string, body io.Reader) (*http.Response, error)
 	}
 
 	a.setBasicHeaders(req)
-	return a.client.Do(req)
-}
 
-func (a *apiHttpAgent) PostOctet(path string, body io.Reader) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodPost, _API+path, body)
-
-	if err != nil {
-		return nil, err
+	if len(headers) > 0 {
+		for key, val := range headers {
+			req.Header.Set(key, val)
+		}
 	}
-
-	a.setBasicHeaders(req)
-	req.Header.Set("Accept", "application/octet-stream")
 
 	return a.client.Do(req)
 }
