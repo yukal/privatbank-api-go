@@ -109,12 +109,12 @@ type ResponseTransactionStatement struct {
 
 // ResponseBalanceStatement
 
-func (r ResponseBalanceStatement) GetClientData() []BalanceStatement {
+func (r ResponseBalanceStatement) GetPayloadData() []BalanceStatement {
 	return r.Data
 }
 
-func (r ResponseBalanceStatement) GetServerData() ResponseServerData {
-	return ResponseServerData{
+func (r ResponseBalanceStatement) GetMetaData() ResponseMetaData {
+	return ResponseMetaData{
 		Status:        r.Status,
 		Type:          r.Type,
 		ExistNextPage: r.ExistNextPage,
@@ -124,12 +124,12 @@ func (r ResponseBalanceStatement) GetServerData() ResponseServerData {
 
 // ResponseTransactionStatement
 
-func (r ResponseTransactionStatement) GetClientData() []TransactionStatement {
+func (r ResponseTransactionStatement) GetPayloadData() []TransactionStatement {
 	return r.Data
 }
 
-func (r ResponseTransactionStatement) GetServerData() ResponseServerData {
-	return ResponseServerData{
+func (r ResponseTransactionStatement) GetMetaData() ResponseMetaData {
+	return ResponseMetaData{
 		Status:        r.Status,
 		Type:          r.Type,
 		ExistNextPage: r.ExistNextPage,

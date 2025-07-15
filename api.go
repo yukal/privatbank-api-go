@@ -43,15 +43,15 @@ type APIOptions struct {
 	TimeoutPerReq time.Duration
 }
 
-type ResponseDataStatement[T any] interface {
+type ResponseDataStatement[ResponsePayloadData any] interface {
 	// GetStatus() string
 	// GetExistNextPage() bool
 	// GetNextPageId() string
-	GetServerData() ResponseServerData
-	GetClientData() []T
+	GetMetaData() ResponseMetaData
+	GetPayloadData() []ResponsePayloadData
 }
 
-type ResponseServerData struct {
+type ResponseMetaData struct {
 	Status        string `json:"status"`
 	Type          string `json:"type"`
 	ExistNextPage bool   `json:"exist_next_page"`
@@ -167,8 +167,8 @@ func fetchWithinMultipleRequests[
 		}
 
 		// Використовуємо методи інтерфейсу для доступу до полів
-		items = append(items, data.GetClientData()...)
-		server := data.GetServerData()
+		items = append(items, data.GetPayloadData()...)
+		server := data.GetMetaData()
 
 		if server.NextPageId != "" {
 			params.Set("followId", server.NextPageId)
