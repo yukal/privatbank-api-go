@@ -1,14 +1,17 @@
 package privatbank
 
 import (
+	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
 	"runtime"
 	"strconv"
 	"strings"
 )
 
-const _API = "https://acp.privatbank.ua/api"
+const API_URL = "https://acp.privatbank.ua/api"
 
 type API struct {
 	Logger    io.Writer
@@ -57,4 +60,18 @@ func (a *API) logResponse(resp *http.Response) {
 	}
 
 	a.Logger.Write([]byte(text + a._EOL))
+}
+
+func buildApiURL(apiPath string, queryParams url.Values) string {
+	return API_URL + apiPath + "?" + queryParams.Encode()
+}
+
+func toJSONReader(payload any) (r *bytes.Reader, err error) {
+	var buf []byte
+
+	if buf, err = json.Marshal(payload); err != nil {
+		return nil, err
+	}
+
+	return bytes.NewReader(buf), nil
 }

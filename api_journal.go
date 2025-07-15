@@ -1,8 +1,7 @@
 package privatbank
 
 import (
-	"bytes"
-	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -29,7 +28,9 @@ import (
 //	  ...
 //	]
 func (a *API) GetPaysheetsJournal() (resp *http.Response, err error) {
-	if resp, err = a.httpAgent.Get("/paysheets/journal"); err != nil {
+	apiURL := API_URL + "/paysheets/journal"
+
+	if resp, err = a.httpAgent.Get(apiURL); err != nil {
 		return
 	}
 
@@ -39,19 +40,20 @@ func (a *API) GetPaysheetsJournal() (resp *http.Response, err error) {
 }
 
 func (a *API) GetJournalInbox(dateBegin, dateEnd string) (resp *http.Response, err error) {
-	apiPath := "/proxy/edoc/journal/inbox"
+	var payload io.Reader
 
-	body := bytes.NewBuffer(
-		[]byte(
-			fmt.Sprintf(`{"dateBegin":"%s", "dateEnd": "%s", "limit": "3"}`,
-				dateBegin,
-				dateEnd,
-			),
-		),
-	)
+	apiURL := API_URL + "/proxy/edoc/journal/inbox"
+	payloadData := map[string]string{
+		"dateBegin": dateBegin,
+		"dateEnd":   dateEnd,
+	}
+
+	if payload, err = toJSONReader(payloadData); err != nil {
+		return nil, err
+	}
 
 	if resp, err = a.httpAgent.Post(
-		apiPath, body, nil); err != nil {
+		apiURL, payload, nil); err != nil {
 		return
 	}
 
@@ -61,19 +63,21 @@ func (a *API) GetJournalInbox(dateBegin, dateEnd string) (resp *http.Response, e
 }
 
 func (a *API) GetJournalOutbox(dateBegin, dateEnd string) (resp *http.Response, err error) {
-	apiPath := "/proxy/edoc/journal/outbox"
+	var payload io.Reader
 
-	body := bytes.NewBuffer(
-		[]byte(
-			fmt.Sprintf(`{"dateBegin":"%s", "dateEnd": "%s", "limit": "3"}`,
-				dateBegin,
-				dateEnd,
-			),
-		),
-	)
+	apiURL := API_URL + "/proxy/edoc/journal/outbox"
+	payloadData := map[string]string{
+		"dateBegin": dateBegin,
+		"dateEnd":   dateEnd,
+		"limit":     "3",
+	}
+
+	if payload, err = toJSONReader(payloadData); err != nil {
+		return nil, err
+	}
 
 	if resp, err = a.httpAgent.Post(
-		apiPath, body, nil); err != nil {
+		apiURL, payload, nil); err != nil {
 		return
 	}
 
@@ -83,19 +87,21 @@ func (a *API) GetJournalOutbox(dateBegin, dateEnd string) (resp *http.Response, 
 }
 
 func (a *API) GetJournalAll(dateBegin, dateEnd string) (resp *http.Response, err error) {
-	apiPath := "/proxy/edoc/journal/all"
+	var payload io.Reader
 
-	body := bytes.NewBuffer(
-		[]byte(
-			fmt.Sprintf(`{"dateBegin":"%s", "dateEnd": "%s", "limit": "3"}`,
-				dateBegin,
-				dateEnd,
-			),
-		),
-	)
+	apiURL := API_URL + "/proxy/edoc/journal/all"
+	payloadData := map[string]string{
+		"dateBegin": dateBegin,
+		"dateEnd":   dateEnd,
+		"limit":     "3",
+	}
+
+	if payload, err = toJSONReader(payloadData); err != nil {
+		return nil, err
+	}
 
 	if resp, err = a.httpAgent.Post(
-		apiPath, body, nil); err != nil {
+		apiURL, payload, nil); err != nil {
 		return
 	}
 

@@ -1,8 +1,8 @@
 package privatbank
 
 import (
-	"fmt"
 	"net/http"
+	"net/url"
 )
 
 // ..............................
@@ -65,12 +65,13 @@ import (
 //	rate_delta  – зміна курсу;
 //	nbuRate     – курс НБУ.
 func (a *API) GetCurrencyHistory(startDate, endDate string) (resp *http.Response, err error) {
-	strURL := fmt.Sprintf("/proxy/currency/history?startDate=%s&endDate=%s",
-		startDate,
-		endDate,
-	)
+	params := make(url.Values, 2)
+	params.Add("startDate", startDate)
+	params.Add("endDate", endDate)
 
-	if resp, err = a.httpAgent.Get(strURL); err != nil {
+	apiURL := buildApiURL("/proxy/currency/history", params)
+
+	if resp, err = a.httpAgent.Get(apiURL); err != nil {
 		return
 	}
 
