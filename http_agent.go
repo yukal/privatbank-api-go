@@ -40,7 +40,7 @@ func (a *HttpAgent) setBasicHeaders(req *http.Request) {
 }
 
 func (a *HttpAgent) Get(path string) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodGet, _API+path, nil)
+	req, err := http.NewRequest(http.MethodGet, path, nil)
 
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (a *HttpAgent) Get(path string) (*http.Response, error) {
 }
 
 func (a *HttpAgent) Post(path string, body io.Reader, headers map[string]string) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodPost, _API+path, body)
+	req, err := http.NewRequest(http.MethodPost, path, body)
 
 	if err != nil {
 		return nil, err
