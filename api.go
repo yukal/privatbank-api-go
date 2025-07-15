@@ -11,9 +11,9 @@ import (
 const _API = "https://acp.privatbank.ua/api"
 
 type API struct {
-	Logger io.Writer
-	agent  *apiHttpAgent
-	_EOL   string
+	Logger    io.Writer
+	httpAgent *apiHttpAgent
+	_EOL      string
 }
 
 type APIOptions struct {
@@ -30,9 +30,9 @@ func NewAPI(options APIOptions) *API {
 	}
 
 	return &API{
-		agent:  newAPIHttpAgent(options.Token, options.Encoding),
-		Logger: options.Logger,
-		_EOL:   eol,
+		httpAgent: newAPIHttpAgent(options.Token, options.Encoding),
+		Logger:    options.Logger,
+		_EOL:      eol,
 	}
 }
 
