@@ -34,7 +34,7 @@ func NewPresentation(api *privatbank.API) *ApiPresentation {
 
 func (p *ApiPresentation) GetStatementsSettings() {
 	var (
-		data privatbank.SettingsStatement
+		data privatbank.ResponseWrapper[privatbank.SettingsStatement]
 		err  error
 	)
 
@@ -43,7 +43,7 @@ func (p *ApiPresentation) GetStatementsSettings() {
 		return
 	}
 
-	p.dump(data)
+	p.dump(data.Payload)
 }
 
 // Transactions
@@ -145,7 +145,7 @@ func (p *ApiPresentation) GetStatementsBalancesInterim() {
 
 func (p *ApiPresentation) GetStatementsBalanceFinal() {
 	var (
-		data privatbank.BalanceStatement
+		data privatbank.ResponseWrapper[privatbank.BalanceStatement]
 		err  error
 	)
 
@@ -154,7 +154,7 @@ func (p *ApiPresentation) GetStatementsBalanceFinal() {
 		return
 	}
 
-	p.dump(data)
+	p.dump(data.Payload)
 }
 
 // Currency
@@ -164,20 +164,16 @@ func (p *ApiPresentation) GetCurrencyHistory() {
 		startDate = "14-05-2025"
 		endDate   = "16-05-2025"
 
-		resp *http.Response
+		data privatbank.ResponseWrapper[privatbank.ResponseCurrencyHistory]
 		err  error
 	)
 
-	if resp, err = p.api.GetCurrencyHistory(startDate, endDate); err != nil {
+	if data, err = p.api.GetCurrencyHistory(startDate, endDate); err != nil {
 		p.writeError(err)
 		return
 	}
 
-	defer resp.Body.Close()
-
-	if err = p.processBody(resp.Body); err != nil {
-		p.writeError(err)
-	}
+	p.dump(data.Payload)
 }
 
 // Payment

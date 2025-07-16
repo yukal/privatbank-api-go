@@ -1,12 +1,35 @@
 package privatbank
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/url"
 )
 
 // ..............................
 // Отримання курсів валют
+
+type ResponseCurrencyHistory struct {
+	CacheInfo struct {
+		FromCache bool `json:"from_cache"`
+	} `json:"cache_info"`
+
+	Data struct {
+		SessionState any                   `json:"sessionState"`
+		History      []CurrencyHistoryItem `json:"history"`
+	} `json:"data"`
+}
+
+type CurrencyHistoryItem struct {
+	Date          string `json:"date"`
+	CurrencyCode  string `json:"currencyCode"`
+	NbuRate       string `json:"nbuRate"`
+	RateSale      string `json:"rate_s"`
+	RateSaleDelta string `json:"rate_s_delta"`
+	RateBuy       string `json:"rate_b"`
+	RateBuyDelta  string `json:"rate_b_delta"`
+}
 
 // Отримання історії курсів валют
 //
@@ -16,6 +39,39 @@ import (
 //	startDate, endDate – дата початку й закінчення періоду (не більше ніж 15 днів).
 //
 // Приклад відповіді:
+//
+
+//	{
+//	    "cache_info": {
+//	        "from_cache": false
+//	    },
+//	    "data": {
+//	        "sessionState": null,
+//	        "history": [
+//	            {
+//	                "date": "16-05-2025",
+//	                "currencyCode": "EUR",
+//	                "nbuRate": "46.3831000",
+//	                "rate_s": "46.7950000",
+//	                "rate_s_delta": "-0.0500000",
+//	                "rate_b": "46.2950000",
+//	                "rate_b_delta": "-0.0500000"
+//	            },
+//	            {
+//	                "date": "16-05-2025",
+//	                "currencyCode": "GBP",
+//	                "nbuRate": "55.0360000",
+//	                "rate_s": "55.8200000",
+//	                "rate_s_delta": "0.1450000",
+//	                "rate_b": "54.8200000",
+//	                "rate_b_delta": "0.1450000"
+//	            },
+//	            ...
+//	        ]
+//	    }
+//	}
+//
+// ...
 //
 //	{
 //	   "cache_info": {
@@ -64,18 +120,39 @@ import (
 //	rate        – курс;
 //	rate_delta  – зміна курсу;
 //	nbuRate     – курс НБУ.
-func (a *API) GetCurrencyHistory(startDate, endDate string) (resp *http.Response, err error) {
+func (api *API) GetCurrencyHistory(startDate, endDate string) (data ResponseWrapper[ResponseCurrencyHistory], err error) {
+	var (
+		responseData ResponseCurrencyHistory
+		resp         *http.Response
+		body         []byte
+	)
+
 	params := make(url.Values, 2)
 	params.Add("startDate", startDate)
 	params.Add("endDate", endDate)
 
 	apiURL := buildApiURL("/proxy/currency/history", params)
 
-	if resp, err = a.httpAgent.Get(apiURL); err != nil {
+	if resp, err = api.httpAgent.Get(apiURL); err != nil {
 		return
 	}
 
-	a.logResponse(resp)
+	defer resp.Body.Close()
+	api.logResponse(resp)
+
+	if body, err = io.ReadAll(resp.Body); err != nil {
+		return
+	}
+
+	if err = json.Unmarshal(body, &responseData); err != nil {
+		return
+	}
+
+	data = ResponseWrapper[ResponseCurrencyHistory]{
+		Response: resp,
+		RawBody:  body,
+		Payload:  responseData,
+	}
 
 	return
 }

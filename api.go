@@ -42,6 +42,12 @@ type APIOptions struct {
 	TimeoutPerReq time.Duration
 }
 
+type ResponseWrapper[TData any] struct {
+	Response *http.Response
+	RawBody  []byte `json:"rawBody"`
+	Payload  TData  `json:"payload"`
+}
+
 type ResponseDataStatement[TResponsePayloadData any] interface {
 	// GetStatus() string
 	// GetExistNextPage() bool

@@ -163,7 +163,7 @@ func (r ResponseTransactionStatement) GetMetaData() ResponseMetaData {
 //			"date_final_statement": "28.03.2020 00:00:00" // дата, включно з якої є підсумкова виписка
 //		}
 //	}
-func (api *API) GetSettingsStatement() (settings SettingsStatement, err error) {
+func (api *API) GetSettingsStatement() (settings ResponseWrapper[SettingsStatement], err error) {
 	var (
 		responseData ResponseSettingsStatement
 		httpResponse *http.Response
@@ -193,11 +193,17 @@ func (api *API) GetSettingsStatement() (settings SettingsStatement, err error) {
 		return
 	}
 
-	return responseData.Data, nil
+	settings = ResponseWrapper[SettingsStatement]{
+		Response: httpResponse,
+		RawBody:  body,
+		Payload:  responseData.Data,
+	}
+
+	return
 }
 
 // Отримати баланс рахунку за останній підсумковий день
-func (api *API) GetBalance(accout string) (balance BalanceStatement, err error) {
+func (api *API) GetBalance(accout string) (balance ResponseWrapper[BalanceStatement], err error) {
 	var (
 		responseData ResponseBalanceStatement
 		resp         *http.Response
@@ -233,7 +239,12 @@ func (api *API) GetBalance(accout string) (balance BalanceStatement, err error) 
 		return
 	}
 
-	balance = responseData.Data[len(responseData.Data)-1]
+	balance = ResponseWrapper[BalanceStatement]{
+		Response: resp,
+		RawBody:  body,
+		Payload:  responseData.Data[len(responseData.Data)-1],
+	}
+
 	return
 }
 
