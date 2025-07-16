@@ -37,9 +37,8 @@ type APIOptions struct {
 	Logger   io.Writer
 
 	// Timeout per request
-	//  - default 500 milliseconds
-	//  - minimum 100 milliseconds
-	//  - maximum 1 second
+	//  - default 200 milliseconds
+	//  - minimum 200 milliseconds
 	TimeoutPerReq time.Duration
 }
 

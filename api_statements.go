@@ -245,7 +245,7 @@ func (api *API) GetInterimBalances(account string, limit uint16) (items []Balanc
 	params.Add("acc", account)
 
 	if limit <= LIMIT_DATA {
-		params.Add("limit", strconv.FormatUint(LIMIT_DATA, 10))
+		params.Add("limit", strconv.FormatUint(uint64(limit), 10))
 	}
 
 	if items, err = fetchWithinMultipleRequests[BalanceStatement, ResponseBalanceStatement](
