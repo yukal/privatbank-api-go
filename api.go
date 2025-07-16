@@ -42,12 +42,12 @@ type APIOptions struct {
 	TimeoutPerReq time.Duration
 }
 
-type ResponseDataStatement[ResponsePayloadData any] interface {
+type ResponseDataStatement[TResponsePayloadData any] interface {
 	// GetStatus() string
 	// GetExistNextPage() bool
 	// GetNextPageId() string
 	GetMetaData() ResponseMetaData
-	GetPayloadData() []ResponsePayloadData
+	GetPayloadData() []TResponsePayloadData
 }
 
 type ResponseMetaData struct {
@@ -134,18 +134,18 @@ func toJSONReader(payload any) (r *bytes.Reader, err error) {
 
 func fetchWithinMultipleRequests[
 
-	ExactData BalanceStatement | TransactionStatement,
-	RespData ResponseDataStatement[ExactData],
+	TExactData BalanceStatement | TransactionStatement,
+	TRespData ResponseDataStatement[TExactData],
 
-](a *API, apiPath string, params url.Values) (items []ExactData, err error) {
-	items = make([]ExactData, 0)
+](a *API, apiPath string, params url.Values) (items []TExactData, err error) {
+	items = make([]TExactData, 0)
 	next := true
 
 	for next {
 		var (
 			resp *http.Response
 			body []byte
-			data RespData
+			data TRespData
 		)
 
 		fullApiURL := apiPath + "?" + params.Encode()
