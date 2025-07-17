@@ -248,6 +248,64 @@ func (api *API) GetBalance(accout string) (balance ResponseWrapper[BalanceStatem
 	return
 }
 
+// Отримати баланс рахунку за конкретно вказаний день
+func (api *API) GetBalanceAt(account, date string) (data ResponseWrapper[BalanceStatement], err error) {
+	var (
+		resp         *http.Response
+		responseData ResponseBalanceStatement
+		body         []byte
+	)
+
+	params := make(url.Values)
+	params.Add("acc", account)
+	params.Add("startDate", date)
+	params.Add("endDate", date)
+	// params.Add("limit", strconv.FormatUint(uint64(LIMIT_DATA), 10))
+
+	apiURL := API_URL + "/statements/balance" + "?" + params.Encode()
+
+	if resp, err = api.httpAgent.Get(apiURL); err != nil {
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("response(%s)", resp.Status)
+		return
+	}
+
+	defer resp.Body.Close()
+	api.logResponse(resp)
+
+	if body, err = io.ReadAll(resp.Body); err != nil {
+		err = fmt.Errorf("io.read-all: %v", err)
+		return
+	}
+
+	if err = json.Unmarshal(body, &responseData); err != nil {
+		err = fmt.Errorf("unmarshal: %v; raw body: '%s'", err, body)
+		return
+	}
+
+	if responseData.Status != RESPONSE_SUCCESS {
+		fmt.Fprintf(api.Logger, "Error getting statements settings: %s\n", body)
+		err = fmt.Errorf("error getting statements settings: %s", responseData.Status)
+		return
+	}
+
+	if len(responseData.Data) == 0 {
+		err = errors.New("no balances found")
+		return
+	}
+
+	data = ResponseWrapper[BalanceStatement]{
+		Response: resp,
+		RawBody:  body,
+		Payload:  responseData.Data[0],
+	}
+
+	return
+}
+
 // Отримати проміжні дані – з lastday по today
 func (api *API) GetInterimBalances(account string, limit uint16) (items []BalanceStatement, err error) {
 	apiURL := API_URL + "/statements/balance/interim"

@@ -106,6 +106,23 @@ func (p *ApiPresentation) GetStatementsTransactionsFinal() {
 
 // Balance
 
+func (p *ApiPresentation) GetStatementsBalanceAt() {
+	var (
+		// date = "01-05-2025"
+		date = "31-05-2025"
+
+		data privatbank.ResponseWrapper[privatbank.BalanceStatement]
+		err  error
+	)
+
+	if data, err = p.api.GetBalanceAt(p.bankAccount, date); err != nil {
+		p.writeError(err)
+		return
+	}
+
+	p.dump(data.Payload)
+}
+
 func (p *ApiPresentation) GetStatementsBalancesAt() {
 	var (
 		limit     uint16 = 100
