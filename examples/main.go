@@ -51,11 +51,6 @@ func main() {
 	// pb.GetCurrencyHistory()
 
 	// ............................
-	// Payment
-
-	// pb.GetPaymentInfo()
-
-	// ............................
 	// Journal
 
 	// pb.GetJournalInbox()

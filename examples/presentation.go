@@ -194,7 +194,7 @@ func (p *ApiPresentation) GetCurrencyHistory() {
 	p.dump(data.Payload)
 }
 
-// Payment
+// Payment - UNDER CONSTRUCTION
 
 func (p *ApiPresentation) GetPaymentInfo() {
 	var (
