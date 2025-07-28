@@ -367,7 +367,7 @@ func (api *API) GetBalancesAt(account, startDate, endDate string, limit uint16) 
 	return
 }
 
-// Отримання серверних дат за певний інтервал для отримання транзакцій.
+// Отримання транзакцій за певний інтервал.
 //
 //	acc        - номер банківського рахунку
 //	startDate  - ДД-ММ-РРРР - дата початку (обов’язковий параметр)
@@ -397,7 +397,7 @@ func (api *API) GetTransactionsAt(account, startDate, endDate string, limit uint
 	return
 }
 
-// Отримати проміжні дані – з lastday по today
+// Отримання транзакцій проміжних даних (з lastday по today)
 func (api *API) GetInterimTransactions(account string, limit uint16) (items []TransactionStatement, err error) {
 	apiURL := API_URL + "/statements/transactions/interim"
 
