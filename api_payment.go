@@ -42,7 +42,7 @@ func (a *API) GetReceipt(account, reference, refn string) (resp *http.Response, 
 			},
 		},
 
-		"perPage": 4,
+		"perPage": 1,
 	}
 
 	if payload, err = toJSONReader(payloadData); err != nil {
