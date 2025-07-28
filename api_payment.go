@@ -24,6 +24,11 @@ func (a *API) GetPaymentInfo(paymentRef string) (resp *http.Response, err error)
 	return
 }
 
+// Отримання платіжної інструкції (квитанції) у PDF форматі.
+//
+//	account   - рахунок по якому платіж був проведений
+//	reference - референс проведеного платежу (в транзакціях це параметр REF)
+//	refn      - додатковий референс платежу (в транзакціях це параметр REFN)
 func (a *API) GetReceipt(account, reference, refn string) (resp *http.Response, err error) {
 	var payload io.Reader
 
