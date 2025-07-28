@@ -13,7 +13,7 @@ func (a *API) GetPaymentInfo(paymentRef string) (resp *http.Response, err error)
 	params := make(url.Values, 1)
 	params.Add("ref", paymentRef)
 
-	apiURL := buildApiURL("/proxy/currency/history", params)
+	apiURL := buildApiURL("/proxy/payment/get", params)
 
 	if resp, err = a.httpAgent.Get(apiURL); err != nil {
 		return
