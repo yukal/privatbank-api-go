@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/yukal/privatbank"
 )
@@ -314,7 +315,7 @@ func (p *ApiPresentation) GetReceipt() {
 		err      error
 	)
 
-	reference := "ABCDE4FABB47D7"
+	reference := "ABCDE4FABC47D7"
 	refn := "P"
 
 	if resp, err = p.api.GetReceipt(p.bankAccount, reference, refn); err != nil {
@@ -326,6 +327,116 @@ func (p *ApiPresentation) GetReceipt() {
 
 	if filename, err = privatbank.ExtractFilenameFromContentDisposition(resp.Header); err != nil {
 		filename = "receipt-" + reference + ".pdf"
+		p.writeError(err)
+		// return
+	}
+
+	if body, err = io.ReadAll(resp.Body); err != nil {
+		p.writeError(err)
+		return
+	}
+
+	if err = os.WriteFile(filename, body, 0644); err != nil {
+		p.writeError(err)
+		return
+	}
+}
+
+func (p *ApiPresentation) GetMultipleReceiptsOf2() {
+	var (
+		perPage uint8 = 2
+		payload       = []map[string]string{
+			{
+				"account":   p.bankAccount,
+				"reference": "ABCDE4FABC47D7",
+				"refn":      "P",
+			},
+			{
+				"account":   p.bankAccount,
+				"reference": "ABCDE4FABC47D8",
+				"refn":      "1",
+			},
+		}
+
+		filename string
+		resp     *http.Response
+		body     []byte
+		err      error
+	)
+
+	if resp, err = p.api.GetMultipleReceipts(payload, perPage); err != nil {
+		p.writeError(err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if filename, err = privatbank.ExtractFilenameFromContentDisposition(resp.Header); err != nil {
+		// time.RFC3339:     2006-01-02T15:04:05Z07:00
+		// time.RFC3339Nano: 2006-01-02T15:04:05.999999999Z07:00
+		fname := time.Now().Format("20060102T150405999999999Z0700")
+
+		filename = "receipt-" + fname + ".pdf"
+		p.writeError(err)
+		// return
+	}
+
+	if body, err = io.ReadAll(resp.Body); err != nil {
+		p.writeError(err)
+		return
+	}
+
+	if err = os.WriteFile(filename, body, 0644); err != nil {
+		p.writeError(err)
+		return
+	}
+}
+
+func (p *ApiPresentation) GetMultipleReceiptsOf4() {
+	var (
+		perPage uint8 = 4
+		payload       = []map[string]string{
+			{
+				"account":   p.bankAccount,
+				"reference": "ABCDE4FABC47D7",
+				"refn":      "P",
+			},
+			{
+				"account":   p.bankAccount,
+				"reference": "ABCDE4FABC47D8",
+				"refn":      "1",
+			},
+			{
+				"account":   p.bankAccount,
+				"reference": "ABCDE4FABC47D9",
+				"refn":      "1",
+			},
+			{
+				"account":   p.bankAccount,
+				"reference": "ABCDE4FABC47DA",
+				"refn":      "1",
+			},
+		}
+
+		filename string
+		resp     *http.Response
+		body     []byte
+		err      error
+	)
+
+	if resp, err = p.api.GetMultipleReceipts(payload, perPage); err != nil {
+		p.writeError(err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if filename, err = privatbank.ExtractFilenameFromContentDisposition(resp.Header); err != nil {
+		// time.RFC3339:     2006-01-02T15:04:05Z07:00
+		// time.RFC3339Nano: 2006-01-02T15:04:05.999999999Z07:00
+		fname := time.Now().Format("20060102T150405999999999Z0700")
+
+		filename = "receipt-" + fname + ".pdf"
 		p.writeError(err)
 		// return
 	}

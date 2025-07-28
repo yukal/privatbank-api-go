@@ -67,4 +67,6 @@ func main() {
 	// Other
 
 	// pb.GetReceipt()
+	// pb.GetMultipleReceiptsOf2()
+	// pb.GetMultipleReceiptsOf4()
 }
