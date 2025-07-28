@@ -1,15 +1,20 @@
 package privatbank
 
+// Package provides a simple HTTP agent for making requests to an API.
+// It includes methods for GET and POST requests, setting headers, and handling responses.
+
 import (
+	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"strings"
 	"time"
 )
 
-const _USER_AGENT = "golang-http-req"
+const USER_AGENT = "golang-http-req"
 
-type apiHttpAgent struct {
+type HttpAgent struct {
 	token    string
 	encoding string
 
@@ -17,8 +22,18 @@ type apiHttpAgent struct {
 	// req    *http.Request
 }
 
-func newAPIHttpAgent(token, encoding string) *apiHttpAgent {
-	return &apiHttpAgent{
+// HTTPError represents an HTTP error with status code and message.
+type HTTPError struct {
+	StatusCode int
+	Message    string
+}
+
+func (e *HTTPError) Error() string {
+	return e.Message
+}
+
+func NewHttpAgent(token, encoding string) *HttpAgent {
+	return &HttpAgent{
 		token:    token,
 		encoding: strings.ToLower(encoding),
 
@@ -33,14 +48,14 @@ func newAPIHttpAgent(token, encoding string) *apiHttpAgent {
 	}
 }
 
-func (a *apiHttpAgent) setBasicHeaders(req *http.Request) {
-	req.Header.Add("User-Agent", _USER_AGENT)
+func (a *HttpAgent) setBasicHeaders(req *http.Request) {
+	req.Header.Add("User-Agent", USER_AGENT)
 	req.Header.Add("Content-Type", "application/json;charset="+a.encoding)
 	req.Header.Add("token", a.token)
 }
 
-func (a *apiHttpAgent) requestGet(path string) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodGet, _API+path, nil)
+func (a *HttpAgent) Get(path string) (*http.Response, error) {
+	req, err := http.NewRequest(http.MethodGet, path, nil)
 
 	if err != nil {
 		return nil, err
@@ -50,26 +65,33 @@ func (a *apiHttpAgent) requestGet(path string) (*http.Response, error) {
 	return a.client.Do(req)
 }
 
-func (a *apiHttpAgent) requestPost(path string, body io.Reader) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodPost, _API+path, body)
+func (a *HttpAgent) Post(path string, body io.Reader, headers map[string]string) (*http.Response, error) {
+	req, err := http.NewRequest(http.MethodPost, path, body)
 
 	if err != nil {
 		return nil, err
 	}
 
 	a.setBasicHeaders(req)
+
+	if len(headers) > 0 {
+		for key, val := range headers {
+			req.Header.Set(key, val)
+		}
+	}
+
 	return a.client.Do(req)
 }
 
-func (a *apiHttpAgent) requestPostOctet(path string, body io.Reader) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodPost, _API+path, body)
+func ExtractFilenameFromContentDisposition(header http.Header) (filename string, err error) {
+	var params map[string]string
 
-	if err != nil {
-		return nil, err
+	if _, params, err = mime.ParseMediaType(
+		header.Get("Content-Disposition")); err != nil {
+		fmt.Printf("Error parsing Content-Disposition: %v\n", err)
+		return
 	}
 
-	a.setBasicHeaders(req)
-	req.Header.Set("Accept", "application/octet-stream")
-
-	return a.client.Do(req)
+	filename = params["filename"]
+	return
 }

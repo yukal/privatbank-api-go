@@ -29,28 +29,26 @@ func main() {
 		Logger:   io.MultiWriter(os.Stdout, logFile),
 	})
 
-	pb := NewApiPresentation(api)
+	pb := NewPresentation(api)
 
 	// ............................
 	// Statement
 
 	pb.GetStatementsSettings()
-	// pb.GetStatementsBalance()
-	// pb.GetStatementsTransactions()
-	// pb.GetStatementsInterimBalance()
-	// pb.GetStatementsInterimTransactions()
-	// pb.GetStatementsFinalBalance()
-	// pb.GetStatementsFinalTransactions()
+
+	// pb.GetStatementsBalanceAt()
+	// pb.GetStatementsBalancesAt()
+	// pb.GetStatementsBalancesInterim()
+	// pb.GetStatementsBalanceFinal()
+
+	// pb.GetStatementsTransactionsAt()
+	// pb.GetStatementsTransactionsInterim()
+	// pb.GetStatementsTransactionsFinal()
 
 	// ............................
 	// Currency
 
 	// pb.GetCurrencyHistory()
-
-	// ............................
-	// Payment
-
-	// pb.GetPaymentInfo()
 
 	// ............................
 	// Journal
@@ -64,4 +62,6 @@ func main() {
 	// Other
 
 	// pb.GetReceipt()
+	// pb.GetMultipleReceiptsOf2()
+	// pb.GetMultipleReceiptsOf4()
 }

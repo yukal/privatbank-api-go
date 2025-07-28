@@ -1,9 +1,142 @@
 package privatbank
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
+	"strconv"
 )
+
+type SettingsStatement struct {
+	DateFinalStatement  string   `json:"date_final_statement"`   // дата, включно з якої є підсумкова виписка
+	DatesWithoutOperDay []string `json:"dates_without_oper_day"` // дні без операційних днів
+	LastDay             string   `json:"lastday"`                // дата минулого операційного дня
+	Phase               string   `json:"phase"`                  // фаза роботи (WRK, NOP, ...)
+	ServerDateTime      string   `json:"server_date_time"`       // дата та час сервера
+	Today               string   `json:"today"`                  // дата поточного операційного дня
+	WorkBalance         string   `json:"work_balance"`           // чи проходять регламент завдання, N – можна робити запити, Y – запити не робити
+}
+
+type BalanceStatement struct {
+	Account        string `json:"acc"`               // рахунок "UACCXXXXX000002600XXXXXXXXXX"
+	AccountName    string `json:"nameACC"`           // найменування рахунку (ВЕСЕЛКА ОСББ)
+	Atp            string `json:"atp"`               // ?
+	BalanceIn      string `json:"balanceIn"`         // вхідний баланс (109064.22)
+	BalanceInEq    string `json:"balanceInEq"`       // вхідний баланс в національній валюті (109064.22)
+	BalanceOut     string `json:"balanceOut"`        // вихідний баланс (109536.71)
+	BalanceOutEq   string `json:"balanceOutEq"`      // вихідний баланс в національній валюті (109536.71)
+	BgfIBrnm       string `json:"bgfIBrnm"`          // бранч, що залучив контрагента
+	AccountBranch  string `json:"brnm"`              // бранч рахунку (VCSZ)
+	Currency       string `json:"currency"`          // валюта рахунку (UAH)
+	DateCloseAcc   string `json:"date_close_acc"`    // дата закриття рахунку (01.01.1900 00:00:00)
+	DateOpenAccReg string `json:"date_open_acc_reg"` // дата відкриття рахунку (30.01.2023 12:14:34)
+	DateOpenAccSys string `json:"date_open_acc_sys"` // дата відкриття рахунку в системі (30.01.2023 00:00:00)
+	DPD            string `json:"dpd"`               // дата останнього руху за рахунком (12.07.2025 00:00:00)
+	Flmn           string `json:"flmn"`              // (VC/DN)
+	IsFinalBal     bool   `json:"is_final_bal"`      // ?
+	State          string `json:"state"`             // стан рахунку? (a - активний?, c - закритий?, d - заблокований?)
+	TurnoverCred   string `json:"turnoverCred"`      // оборот, кредит (472.49)
+	TurnoverCredEq string `json:"turnoverCredEq"`    // оборот, кредит (екв. у нац. валюті) (472.49)
+	TurnoverDebt   string `json:"turnoverDebt"`      // оборот, дебет (0.00)
+	TurnoverDebtEq string `json:"turnoverDebtEq"`    // оборот, дебет (екв. у нац. валюті) (0.00)
+}
+
+type TransactionStatement struct {
+	// Receiver
+
+	RecvEDRPOU  string `json:"AUT_MY_CRF"`      // ЄДРПОУ одержувача
+	RecvMFO     string `json:"AUT_MY_MFO"`      // МФО одержувача
+	RecvAcc     string `json:"AUT_MY_ACC"`      // рахунок одержувача
+	RecvName    string `json:"AUT_MY_NAM"`      // назва одержувача
+	RecvMFOName string `json:"AUT_MY_MFO_NAME"` // банк одержувача
+	RecvMFOCity string `json:"AUT_MY_MFO_CITY"` // назва міста банку
+
+	// Contragent
+
+	CntrEDRPOU  string `json:"AUT_CNTR_CRF"`      // ЄДРПОУ контрагента
+	CntrMFO     string `json:"AUT_CNTR_MFO"`      // МФО контрагента
+	CntrAcc     string `json:"AUT_CNTR_ACC"`      // рахунок контрагента
+	CntrName    string `json:"AUT_CNTR_NAM"`      // назва контрагента
+	CntrMFOName string `json:"AUT_CNTR_MFO_NAME"` // назва банку контрагента
+	CntrMFOCity string `json:"AUT_CNTR_MFO_CITY"` // назва міста банку
+
+	// Other parameters
+
+	Currency        string `json:"CCY"`                      // валюта
+	Reality         string `json:"FL_REAL"`                  // ознака реальності проведення (r,i)
+	Status          string `json:"PR_PR"`                    // стан p - проводиться, t - сторнована, r - проведена, n - забракована
+	DocumentType    string `json:"DOC_TYP"`                  // тип пл. документа
+	DocumentNum     string `json:"NUM_DOC"`                  // номер документа
+	ClientDate      string `json:"DAT_KL"`                   // клієнтська дата
+	CurrDate        string `json:"DAT_OD"`                   // дата валютування
+	OSND            string `json:"OSND"`                     // підстава платежу
+	Sum1            string `json:"SUM"`                      // сума
+	Sum2            string `json:"SUM_E"`                    // сума в національній валюті (грн)
+	RefAct          string `json:"REF"`                      // референс проведення
+	RefN            string `json:"REFN"`                     // № з/п всередині проведення
+	Time            string `json:"TIM_P"`                    // час проведення
+	DateTime        string `json:"DATE_TIME_DAT_OD_TIM_P"`   // дата та час проведення
+	TransactionId   string `json:"ID"`                       // ID транзакції
+	TransactionType string `json:"TRANTYPE"`                 // тип транзакції дебет/кредит (D, C)
+	PaymentRef      string `json:"DLR"`                      // референс платежу сервісу, через який створювали платіж (payment_pack_ref - у разі створення платежу через АPI «Автоклієнт»)
+	TTransactionId  string `json:"TECHNICAL_TRANSACTION_ID"` // "4140766673_online"
+}
+
+type ResponseSettingsStatement struct {
+	Status string            `json:"status"`
+	Type   string            `json:"type"`
+	Data   SettingsStatement `json:"settings"`
+}
+
+type ResponseBalanceStatement struct {
+	Status        string             `json:"status"`
+	Type          string             `json:"type"`
+	ExistNextPage bool               `json:"exist_next_page"`
+	NextPageId    string             `json:"next_page_id"`
+	Data          []BalanceStatement `json:"balances"`
+}
+
+type ResponseTransactionStatement struct {
+	Status        string                 `json:"status"`
+	Type          string                 `json:"type"`
+	ExistNextPage bool                   `json:"exist_next_page"`
+	NextPageId    string                 `json:"next_page_id"`
+	Data          []TransactionStatement `json:"transactions"`
+}
+
+// ResponseBalanceStatement
+
+func (r ResponseBalanceStatement) GetPayloadData() []BalanceStatement {
+	return r.Data
+}
+
+func (r ResponseBalanceStatement) GetMetaData() ResponseMetaData {
+	return ResponseMetaData{
+		Status:        r.Status,
+		Type:          r.Type,
+		ExistNextPage: r.ExistNextPage,
+		NextPageId:    r.NextPageId,
+	}
+}
+
+// ResponseTransactionStatement
+
+func (r ResponseTransactionStatement) GetPayloadData() []TransactionStatement {
+	return r.Data
+}
+
+func (r ResponseTransactionStatement) GetMetaData() ResponseMetaData {
+	return ResponseMetaData{
+		Status:        r.Status,
+		Type:          r.Type,
+		ExistNextPage: r.ExistNextPage,
+		NextPageId:    r.NextPageId,
+	}
+
+}
 
 // Отримання серверних дат.
 // Якщо значення phase відмінне від WRK, то в цей період запити до API можуть повертатися з помилками.
@@ -13,152 +146,344 @@ import (
 // Приклад відповіді:
 //
 //	{
-//	  "status": "SUCCESS",
-//	  "type": "settings",
-//	  "settings": {
-//	    "phase": "WRK",
-//	    "dates_without_oper_day": // дні без опер. днів
-//	      "01.01.2018 00:00:00",
-//	      "30.12.2018 00:00:00",
-//	      "31.12.2018 00:00:00",
-//	      "01.01.2019 00:00:00",
-//	      "29.12.2019 00:00:00",
-//	      "30.12.2019 00:00:00",
-//	      "31.12.2019 00:00:00",
-//	      "01.01.2020 00:00:00"
-//	    ],
-//	    "today": "30.03.2020 00:00:00", // дата поточного опер. дня (проміжна виписка)
-//	    "lastday": "29.03.2020 00:00:00", // дата минулого опер. дня (проміжна виписка)
-//	    "work_balance": "N", // чи проходять регламент завдання, N – можна робити запити, Y – запити не робити
-//	    "server_date_time": "30.03.2020 12:03:51",
-//	    "date_final_statement": "28.03.2020 00:00:00" // дата, включно з якої є підсумкова виписка
-//	  }
+//		"status": "SUCCESS",
+//		"type": "settings",
+//		"settings": {
+//			"phase": "WRK",
+//			"dates_without_oper_day": [
+//				"01.01.2018 00:00:00",
+//				"30.12.2018 00:00:00",
+//				...
+//				"01.01.2020 00:00:00"
+//			],
+//			"today": "30.03.2020 00:00:00", // дата поточного опер. дня (проміжна виписка)
+//			"lastday": "29.03.2020 00:00:00", // дата минулого опер. дня (проміжна виписка)
+//			"work_balance": "N", // чи проходять регламент завдання, N – можна робити запити, Y – запити не робити
+//			"server_date_time": "30.03.2020 12:03:51",
+//			"date_final_statement": "28.03.2020 00:00:00" // дата, включно з якої є підсумкова виписка
+//		}
 //	}
-func (a *API) GetStatementsSettings() (resp *http.Response, err error) {
-	if resp, err = a.agent.requestGet("/statements/settings"); err != nil {
+func (api *API) GetSettingsStatement() (settings ResponseWrapper[SettingsStatement], err error) {
+	var (
+		responseData ResponseSettingsStatement
+		httpResponse *http.Response
+		body         []byte
+	)
+
+	apiURL := API_URL + "/statements/settings"
+
+	if httpResponse, err = api.httpAgent.Get(apiURL); err != nil {
 		return
 	}
 
-	a.logResponse(resp)
+	defer httpResponse.Body.Close()
+	api.logResponse(httpResponse)
+
+	if body, err = io.ReadAll(httpResponse.Body); err != nil {
+		return
+	}
+
+	if err = json.Unmarshal(body, &responseData); err != nil {
+		return
+	}
+
+	if responseData.Status != RESPONSE_SUCCESS {
+		fmt.Fprintf(api.Logger, "Error getting statements settings: %s\n", body)
+		err = fmt.Errorf("error getting statements settings: %s", responseData.Status)
+		return
+	}
+
+	settings = ResponseWrapper[SettingsStatement]{
+		Response: httpResponse,
+		RawBody:  body,
+		Payload:  responseData.Data,
+	}
 
 	return
 }
 
-// Отримання серверних дат за певний інтервал для отримання балансів.
+// Отримати баланс рахунку за останній підсумковий день
+func (api *API) GetBalance(accout string) (balance ResponseWrapper[BalanceStatement], err error) {
+	var (
+		responseData ResponseBalanceStatement
+		resp         *http.Response
+		body         []byte
+	)
+
+	apiURL := API_URL + "/statements/balance/final?limit=1&acc=" +
+		url.QueryEscape(accout)
+
+	if resp, err = api.httpAgent.Get(apiURL); err != nil {
+		return
+	}
+
+	defer resp.Body.Close()
+	api.logResponse(resp)
+
+	if body, err = io.ReadAll(resp.Body); err != nil {
+		return
+	}
+
+	if err = json.Unmarshal(body, &responseData); err != nil {
+		return
+	}
+
+	if responseData.Status != RESPONSE_SUCCESS {
+		fmt.Fprintf(api.Logger, "Error getting balance: %s\n", body)
+		err = fmt.Errorf("error getting balance: %s", responseData.Status)
+		return
+	}
+
+	if len(responseData.Data) == 0 {
+		err = errors.New("no balances found")
+		return
+	}
+
+	balance = ResponseWrapper[BalanceStatement]{
+		Response: resp,
+		RawBody:  body,
+		Payload:  responseData.Data[len(responseData.Data)-1],
+	}
+
+	return
+}
+
+// Отримати баланс рахунку за конкретно вказаний день
+func (api *API) GetBalanceAt(account, date string) (data ResponseWrapper[BalanceStatement], err error) {
+	var (
+		resp         *http.Response
+		responseData ResponseBalanceStatement
+		body         []byte
+	)
+
+	params := make(url.Values)
+	params.Add("acc", account)
+	params.Add("startDate", date)
+	params.Add("endDate", date)
+	// params.Add("limit", strconv.FormatUint(uint64(LIMIT_DATA), 10))
+
+	apiURL := API_URL + "/statements/balance" + "?" + params.Encode()
+
+	if resp, err = api.httpAgent.Get(apiURL); err != nil {
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("response(%s)", resp.Status)
+		return
+	}
+
+	defer resp.Body.Close()
+	api.logResponse(resp)
+
+	if body, err = io.ReadAll(resp.Body); err != nil {
+		err = fmt.Errorf("io.read-all: %v", err)
+		return
+	}
+
+	if err = json.Unmarshal(body, &responseData); err != nil {
+		err = fmt.Errorf("unmarshal: %v; raw body: '%s'", err, body)
+		return
+	}
+
+	if responseData.Status != RESPONSE_SUCCESS {
+		fmt.Fprintf(api.Logger, "Error getting statements settings: %s\n", body)
+		err = fmt.Errorf("error getting statements settings: %s", responseData.Status)
+		return
+	}
+
+	if len(responseData.Data) == 0 {
+		err = errors.New("no balances found")
+		return
+	}
+
+	data = ResponseWrapper[BalanceStatement]{
+		Response: resp,
+		RawBody:  body,
+		Payload:  responseData.Data[0],
+	}
+
+	return
+}
+
+// Отримати проміжні дані – з lastday по today.
+//
+// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
+// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
+// отриманих body розділених "\r\n\r\n".
+// @see fetchWithinMultipleRequests
+//
+//	account - банківський рахунок (в форматі IBAN)
+//	limit   - ліміт переліку даних (за один запит)
+func (api *API) GetInterimBalances(account string, limit uint16) (r ResponseWrapper[[]BalanceStatement], err error) {
+	apiURL := API_URL + "/statements/balance/interim"
+
+	params := make(url.Values)
+	params.Add("acc", account)
+
+	if limit <= LIMIT_DATA {
+		params.Add("limit", strconv.FormatUint(uint64(limit), 10))
+	}
+
+	if r, err = fetchWithinMultipleRequests[BalanceStatement, ResponseBalanceStatement](
+		api, apiURL, params); err != nil {
+		return
+	}
+
+	// api.logResponse(r.Response)
+
+	if len(r.Payload) == 0 {
+		err = errors.New("no balances found")
+		// return
+	}
+
+	return
+}
+
+// Отримання балансу за певний інтервал.
+//
+// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
+// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
+// отриманих body розділених "\r\n\r\n".
+// @see fetchWithinMultipleRequests
 //
 //	acc        - номер банківського рахунку
 //	startDate  - ДД-ММ-РРРР - дата початку (обов’язковий параметр)
 //	endDate    - ДД-ММ-РРРР - дата закінчення (необов’язковий параметр)
 //	followId   - ID наступної пачки з відповіді (необов’язковий параметр)
 //	limit      - кількість записів у пачці (за замовчуванням 20), максимальне значення - 500, рекомендується використовувати не більше 100
-func (a *API) GetStatementsBalance(acc, startDate, endDate string, limit uint16) (resp *http.Response, err error) {
-	apiURL := fmt.Sprintf("/statements/balance?acc=%s&startDate=%s&endDate=%s&limit=%d",
-		acc,
-		startDate,
-		endDate,
-		limit,
-	)
+func (api *API) GetBalancesAt(account, startDate, endDate string, limit uint16) (r ResponseWrapper[[]BalanceStatement], err error) {
+	apiURL := API_URL + "/statements/balance"
 
-	if resp, err = a.agent.requestGet(apiURL); err != nil {
+	params := make(url.Values)
+	params.Add("acc", account)
+	params.Add("startDate", startDate)
+
+	if endDate != "" {
+		params.Add("endDate", endDate)
+	}
+
+	if limit <= LIMIT_DATA {
+		params.Add("limit", strconv.FormatUint(uint64(limit), 10))
+	}
+
+	if r, err = fetchWithinMultipleRequests[BalanceStatement, ResponseBalanceStatement](
+		api, apiURL, params); err != nil {
 		return
 	}
 
-	a.logResponse(resp)
+	if len(r.Payload) == 0 {
+		err = errors.New("no balances found")
+		// return
+	}
 
 	return
 }
 
-// Отримання серверних дат за певний інтервал для отримання транзакцій.
+// Отримання транзакцій за певний інтервал.
+//
+// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
+// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
+// отриманих body розділених "\r\n\r\n".
+// @see fetchWithinMultipleRequests
 //
 //	acc        - номер банківського рахунку
 //	startDate  - ДД-ММ-РРРР - дата початку (обов’язковий параметр)
 //	endDate    - ДД-ММ-РРРР - дата закінчення (необов’язковий параметр)
 //	followId   - ID наступної пачки з відповіді (необов’язковий параметр)
 //	limit      - кількість записів у пачці (за замовчуванням 20), максимальне значення - 500, рекомендується використовувати не більше 100
-func (a *API) GetStatementsTransactions(acc, startDate, endDate string, limit uint16) (resp *http.Response, err error) {
-	strURL := fmt.Sprintf("/statements/transactions?acc=%s&startDate=%s&endDate=%s&limit=%d",
-		acc,
-		startDate,
-		endDate,
-		limit,
-	)
+func (api *API) GetTransactionsAt(account, startDate, endDate string, limit uint16) (r ResponseWrapper[[]TransactionStatement], err error) {
+	apiURL := API_URL + "/statements/transactions"
 
-	if resp, err = a.agent.requestGet(strURL); err != nil {
+	params := make(url.Values)
+	params.Add("acc", account)
+	params.Add("startDate", startDate)
+
+	if endDate != "" {
+		params.Add("endDate", endDate)
+	}
+
+	if limit <= LIMIT_DATA {
+		params.Add("limit", strconv.FormatUint(uint64(limit), 10))
+	}
+
+	if r, err = fetchWithinMultipleRequests[TransactionStatement, ResponseTransactionStatement](
+		api, apiURL, params); err != nil {
 		return
 	}
 
-	a.logResponse(resp)
+	// api.logResponse(r.Response)
+
+	if len(r.Payload) == 0 {
+		err = errors.New("no transactions found")
+		// return
+	}
 
 	return
 }
 
-// Отримати проміжні дані – з lastday по today
-func (a *API) GetStatementsInterimBalance(acc, startDate, endDate string, limit uint16) (resp *http.Response, err error) {
-	apiURL := fmt.Sprintf("/statements/balance/interim?acc=%s&startDate=%s&endDate=%s&limit=%d",
-		acc,
-		startDate,
-		endDate,
-		limit,
-	)
+// Отримання транзакцій проміжних даних (з lastday по today)
+//
+// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
+// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
+// отриманих body розділених "\r\n\r\n".
+// @see fetchWithinMultipleRequests
+//
+//	account - банківський рахунок (в форматі IBAN)
+//	limit   - ліміт переліку даних (за один запит)
+func (api *API) GetInterimTransactions(account string, limit uint16) (r ResponseWrapper[[]TransactionStatement], err error) {
+	apiURL := API_URL + "/statements/transactions/interim"
 
-	if resp, err = a.agent.requestGet(apiURL); err != nil {
+	params := make(url.Values)
+	params.Add("acc", account)
+
+	if limit <= LIMIT_DATA {
+		params.Add("limit", strconv.FormatUint(uint64(limit), 10))
+	}
+
+	if r, err = fetchWithinMultipleRequests[TransactionStatement, ResponseTransactionStatement](
+		api, apiURL, params); err != nil {
 		return
 	}
 
-	a.logResponse(resp)
+	// api.logResponse(r.Response)
+
+	if len(r.Payload) == 0 {
+		err = errors.New("no transactions found")
+		// return
+	}
 
 	return
 }
 
-// Отримати проміжні дані – з lastday по today
-func (a *API) GetStatementsInterimTransactions(acc, startDate, endDate string, limit uint16) (resp *http.Response, err error) {
-	strURL := fmt.Sprintf("/statements/transactions/interim?acc=%s&startDate=%s&endDate=%s&limit=%d",
-		acc,
-		startDate,
-		endDate,
-		limit,
-	)
+// Отримати транзакції за останній підсумковий день
+//
+// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
+// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
+// отриманих body розділених "\r\n\r\n".
+// @see fetchWithinMultipleRequests
+//
+//	account - банківський рахунок (в форматі IBAN)
+//	limit   - ліміт переліку даних (за один запит)
+func (api *API) GetFinalTransactions(account string, limit uint16) (r ResponseWrapper[[]TransactionStatement], err error) {
+	apiURL := API_URL + "/statements/transactions/final"
 
-	if resp, err = a.agent.requestGet(strURL); err != nil {
-		return
+	params := make(url.Values)
+	params.Add("acc", account)
+
+	if limit <= LIMIT_DATA {
+		params.Add("limit", strconv.FormatUint(uint64(limit), 10))
 	}
 
-	a.logResponse(resp)
+	r, err = fetchWithinMultipleRequests[TransactionStatement, ResponseTransactionStatement](
+		api, apiURL, params)
 
-	return
-}
+	// api.logResponse(r.Response)
 
-// Отримати дані за останній підсумковий день
-func (a *API) GetStatementsFinalBalance(acc, startDate string, limit uint16) (resp *http.Response, err error) {
-	apiURL := fmt.Sprintf("/statements/balance/final?acc=%s&startDate=%s&limit=%d",
-		acc,
-		startDate,
-		limit,
-	)
-
-	if resp, err = a.agent.requestGet(apiURL); err != nil {
-		return
+	if len(r.Payload) == 0 {
+		err = errors.New("no transactions found")
+		// return
 	}
-
-	a.logResponse(resp)
-
-	return
-}
-
-// Отримати дані за останній підсумковий день
-func (a *API) GetStatementsFinalTransactions(acc, startDate, endDate string, limit uint16) (resp *http.Response, err error) {
-	strURL := fmt.Sprintf("/statements/transactions/final?acc=%s&startDate=%s&endDate=%s&limit=%d",
-		acc,
-		startDate,
-		endDate,
-		limit,
-	)
-
-	if resp, err = a.agent.requestGet(strURL); err != nil {
-		return
-	}
-
-	a.logResponse(resp)
 
 	return
 }
