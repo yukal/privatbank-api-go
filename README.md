@@ -1,17 +1,20 @@
 # privatbank-api-go
-PrivatBank API based on Go.
+PrivatBank API based on Go. [UA](README.UA.md)
 
 UNDER CONSTRUCTION.
 
 Available API methods:
-- api.[GetSettingsStatement](api_statements.go#L166)   – Отримання серверних дат ([demo]())
-- api.[GetBalance](api_statements.go#L206)             – Отримати баланс рахунку за останній підсумковий день ([demo]())
-- api.[GetBalanceAt](api_statements.go#L252)           – Отримати баланс рахунку за конкретно вказаний день ([demo]())
-- api.[GetInterimBalances](api_statements.go#L310)     – Отримати проміжні дані балансу ([demo]())
-- api.[GetBalancesAt](api_statements.go#L342)          – Отримання балансу за певний інтервал ([demo]())
-- api.[GetTransactionsAt](api_statements.go#L377)      – Отримання транзакцій за певний інтервал ([demo]())
-- api.[GetInterimTransactions](api_statements.go#L401) – Отримання транзакцій проміжних даних ([demo]())
-- api.[GetFinalTransactions](api_statements.go#L427)   – Отримати транзакції за останній підсумковий день ([demo]())
+- api.[GetCurrencyHistory](api_currency.go#L123)       – Get currency exchange rate history ([demo](./examples/presentation.go#L180))
+- api.[GetSettingsStatement](api_statements.go#L166)   – Get server dates ([demo](./examples/presentation.go#L36))
+- api.[GetBalance](api_statements.go#L206)             – Get the account balance for the last closing day ([demo](./examples/presentation.go#L164))
+- api.[GetBalanceAt](api_statements.go#L252)           – Get account balance for a specific day ([demo](./examples/presentation.go#L110))
+- api.[GetInterimBalances](api_statements.go#L310)     – Get interim balance data ([demo](./examples/presentation.go#L146))
+- api.[GetBalancesAt](api_statements.go#L342)          – Get balance for a certain interval ([demo](./examples/presentation.go#L127))
+- api.[GetTransactionsAt](api_statements.go#L377)      – Get transactions at a certain interval ([demo](./examples/presentation.go#L52))
+- api.[GetInterimTransactions](api_statements.go#L401) – Get intermediate data transactions ([demo](./examples/presentation.go#L72))
+- api.[GetFinalTransactions](api_statements.go#L427)   – Get transactions for the last closing day ([demo](./examples/presentation.go#L90))
+- api.[GetReceipt](api_payment.go#L32)                 – Receiving a payment instruction (receipt) in PDF format. ([demo](./examples/presentation.go#L310))
+- api.[GetMultipleReceipts](api_payment.go#L76)        – Receiving multiple payment instructions (receipts) in PDF format. ([demo1](./examples/presentation.go#L345), [demo2](./examples/presentation.go#L395))
 
 See full API demonstration at [examples](./examples/).
 
@@ -41,13 +44,14 @@ func main() {
 	defer logFile.Close()
 
 	api := privatbank.NewAPI(privatbank.APIOptions{
+        // Encoding type of responses from the server
 		Encoding: "utf8",
 		Token:    "YOUR-PERSONAL-PRIVATBANK-API-TOKEN",
 		Logger:   io.MultiWriter(os.Stdout, logFile),
 	})
 
 	var (
-        // YOUR IBAN (bank account)
+        // Your bank account in IBAN format
 		account = "UAXXNNNNNN0000029001234567890"
 		data    privatbank.ResponseWrapper[privatbank.BalanceStatement]
 	)
