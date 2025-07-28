@@ -143,36 +143,43 @@ func fetchWithinMultipleRequests[
 	TExactData BalanceStatement | TransactionStatement,
 	TRespData ResponseDataStatement[TExactData],
 
-](a *API, apiPath string, params url.Values) (items []TExactData, err error) {
-	items = make([]TExactData, 0)
-	next := true
+](a *API, apiPath string, params url.Values) (rw ResponseWrapper[[]TExactData], err error) {
+	rw.Payload = make([]TExactData, 0)
 
-	for next {
+	for next := true; next; {
 		var (
-			resp *http.Response
 			body []byte
 			data TRespData
 		)
 
 		fullApiURL := apiPath + "?" + params.Encode()
 
-		if resp, err = a.httpAgent.Get(fullApiURL); err != nil {
+		if rw.Response, err = a.httpAgent.Get(fullApiURL); err != nil {
 			return
 		}
 
-		defer resp.Body.Close()
-		a.logResponse(resp)
+		defer rw.Response.Body.Close()
+		a.logResponse(rw.Response)
 
-		if body, err = io.ReadAll(resp.Body); err != nil {
+		if body, err = io.ReadAll(rw.Response.Body); err != nil {
 			return
 		}
+
+		body = bytes.TrimSpace(body)
 
 		if err = json.Unmarshal(body, &data); err != nil {
 			return
 		}
 
+		if len(rw.RawBody) == 0 {
+			rw.RawBody = body
+		} else {
+			bodyWithSeparator := append([]byte("\r\n\r\n"), body...)
+			rw.RawBody = append(rw.RawBody, bodyWithSeparator...)
+		}
+
 		// Використовуємо методи інтерфейсу для доступу до полів
-		items = append(items, data.GetPayloadData()...)
+		rw.Payload = append(rw.Payload, data.GetPayloadData()...)
 		server := data.GetMetaData()
 
 		if server.NextPageId != "" {

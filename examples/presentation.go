@@ -35,16 +35,16 @@ func NewPresentation(api *privatbank.API) *ApiPresentation {
 
 func (p *ApiPresentation) GetStatementsSettings() {
 	var (
-		data privatbank.ResponseWrapper[privatbank.SettingsStatement]
-		err  error
+		rw  privatbank.ResponseWrapper[privatbank.SettingsStatement]
+		err error
 	)
 
-	if data, err = p.api.GetSettingsStatement(); err != nil {
+	if rw, err = p.api.GetSettingsStatement(); err != nil {
 		p.writeError(err)
 		return
 	}
 
-	p.dump(data.Payload)
+	p.dump(rw.Payload)
 }
 
 // Transactions
@@ -55,54 +55,54 @@ func (p *ApiPresentation) GetStatementsTransactionsAt() {
 		startDate        = "28-04-2025"
 		endDate          = "30-04-2025"
 
-		data []privatbank.TransactionStatement
-		err  error
+		rw  privatbank.ResponseWrapper[[]privatbank.TransactionStatement]
+		err error
 	)
 
-	if data, err = p.api.GetTransactionsAt(
+	if rw, err = p.api.GetTransactionsAt(
 		p.bankAccount, startDate, endDate, limit); err != nil {
 
 		p.writeError(err)
 		return
 	}
 
-	p.dump(data)
+	p.dump(rw.Payload)
 }
 
 func (p *ApiPresentation) GetStatementsTransactionsInterim() {
 	var (
 		limit uint16 = 100
 
-		items []privatbank.TransactionStatement
-		err   error
+		rw  privatbank.ResponseWrapper[[]privatbank.TransactionStatement]
+		err error
 	)
 
-	if items, err = p.api.GetInterimTransactions(
+	if rw, err = p.api.GetInterimTransactions(
 		p.bankAccount, limit); err != nil {
 
 		p.writeError(err)
 		return
 	}
 
-	p.dump(items)
+	p.dump(rw.Payload)
 }
 
 func (p *ApiPresentation) GetStatementsTransactionsFinal() {
 	var (
 		limit uint16 = 100
 
-		items []privatbank.TransactionStatement
-		err   error
+		rw  privatbank.ResponseWrapper[[]privatbank.TransactionStatement]
+		err error
 	)
 
-	if items, err = p.api.GetFinalTransactions(
+	if rw, err = p.api.GetFinalTransactions(
 		p.bankAccount, limit); err != nil {
 
 		p.writeError(err)
 		return
 	}
 
-	p.dump(items)
+	p.dump(rw.Payload)
 }
 
 // Balance
@@ -112,16 +112,16 @@ func (p *ApiPresentation) GetStatementsBalanceAt() {
 		// date = "01-05-2025"
 		date = "31-05-2025"
 
-		data privatbank.ResponseWrapper[privatbank.BalanceStatement]
-		err  error
+		rw  privatbank.ResponseWrapper[privatbank.BalanceStatement]
+		err error
 	)
 
-	if data, err = p.api.GetBalanceAt(p.bankAccount, date); err != nil {
+	if rw, err = p.api.GetBalanceAt(p.bankAccount, date); err != nil {
 		p.writeError(err)
 		return
 	}
 
-	p.dump(data.Payload)
+	p.dump(rw.Payload)
 }
 
 func (p *ApiPresentation) GetStatementsBalancesAt() {
@@ -130,49 +130,49 @@ func (p *ApiPresentation) GetStatementsBalancesAt() {
 		startDate        = "28-04-2025"
 		endDate          = "30-04-2025"
 
-		items []privatbank.BalanceStatement
-		err   error
+		rw  privatbank.ResponseWrapper[[]privatbank.BalanceStatement]
+		err error
 	)
 
-	if items, err = p.api.GetBalancesAt(
+	if rw, err = p.api.GetBalancesAt(
 		p.bankAccount, startDate, endDate, limit); err != nil {
 		p.writeError(err)
 		return
 	}
 
-	p.dump(items)
+	p.dump(rw.Payload)
 }
 
 func (p *ApiPresentation) GetStatementsBalancesInterim() {
 	var (
 		limit uint16 = 100
 
-		items []privatbank.BalanceStatement
-		err   error
+		rw  privatbank.ResponseWrapper[[]privatbank.BalanceStatement]
+		err error
 	)
 
-	if items, err = p.api.GetInterimBalances(
+	if rw, err = p.api.GetInterimBalances(
 		p.bankAccount, limit); err != nil {
 
 		p.writeError(err)
 		return
 	}
 
-	p.dump(items)
+	p.dump(rw.Payload)
 }
 
 func (p *ApiPresentation) GetStatementsBalanceFinal() {
 	var (
-		data privatbank.ResponseWrapper[privatbank.BalanceStatement]
-		err  error
+		rw  privatbank.ResponseWrapper[privatbank.BalanceStatement]
+		err error
 	)
 
-	if data, err = p.api.GetBalance(p.bankAccount); err != nil {
+	if rw, err = p.api.GetBalance(p.bankAccount); err != nil {
 		p.writeError(err)
 		return
 	}
 
-	p.dump(data.Payload)
+	p.dump(rw.Payload)
 }
 
 // Currency
@@ -182,16 +182,16 @@ func (p *ApiPresentation) GetCurrencyHistory() {
 		startDate = "14-05-2025"
 		endDate   = "16-05-2025"
 
-		data privatbank.ResponseWrapper[privatbank.ResponseCurrencyHistory]
-		err  error
+		rw  privatbank.ResponseWrapper[privatbank.ResponseCurrencyHistory]
+		err error
 	)
 
-	if data, err = p.api.GetCurrencyHistory(startDate, endDate); err != nil {
+	if rw, err = p.api.GetCurrencyHistory(startDate, endDate); err != nil {
 		p.writeError(err)
 		return
 	}
 
-	p.dump(data.Payload)
+	p.dump(rw.Payload)
 }
 
 // Payment - UNDER CONSTRUCTION

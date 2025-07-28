@@ -306,8 +306,16 @@ func (api *API) GetBalanceAt(account, date string) (data ResponseWrapper[Balance
 	return
 }
 
-// Отримати проміжні дані – з lastday по today
-func (api *API) GetInterimBalances(account string, limit uint16) (items []BalanceStatement, err error) {
+// Отримати проміжні дані – з lastday по today.
+//
+// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
+// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
+// отриманих body розділених "\r\n\r\n".
+// @see fetchWithinMultipleRequests
+//
+//	account - банківський рахунок (в форматі IBAN)
+//	limit   - ліміт переліку даних (за один запит)
+func (api *API) GetInterimBalances(account string, limit uint16) (r ResponseWrapper[[]BalanceStatement], err error) {
 	apiURL := API_URL + "/statements/balance/interim"
 
 	params := make(url.Values)
@@ -317,14 +325,14 @@ func (api *API) GetInterimBalances(account string, limit uint16) (items []Balanc
 		params.Add("limit", strconv.FormatUint(uint64(limit), 10))
 	}
 
-	if items, err = fetchWithinMultipleRequests[BalanceStatement, ResponseBalanceStatement](
+	if r, err = fetchWithinMultipleRequests[BalanceStatement, ResponseBalanceStatement](
 		api, apiURL, params); err != nil {
 		return
 	}
 
-	// api.logResponse(resp)
+	// api.logResponse(r.Response)
 
-	if len(items) == 0 {
+	if len(r.Payload) == 0 {
 		err = errors.New("no balances found")
 		// return
 	}
@@ -334,12 +342,17 @@ func (api *API) GetInterimBalances(account string, limit uint16) (items []Balanc
 
 // Отримання балансу за певний інтервал.
 //
+// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
+// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
+// отриманих body розділених "\r\n\r\n".
+// @see fetchWithinMultipleRequests
+//
 //	acc        - номер банківського рахунку
 //	startDate  - ДД-ММ-РРРР - дата початку (обов’язковий параметр)
 //	endDate    - ДД-ММ-РРРР - дата закінчення (необов’язковий параметр)
 //	followId   - ID наступної пачки з відповіді (необов’язковий параметр)
 //	limit      - кількість записів у пачці (за замовчуванням 20), максимальне значення - 500, рекомендується використовувати не більше 100
-func (api *API) GetBalancesAt(account, startDate, endDate string, limit uint16) (items []BalanceStatement, err error) {
+func (api *API) GetBalancesAt(account, startDate, endDate string, limit uint16) (r ResponseWrapper[[]BalanceStatement], err error) {
 	apiURL := API_URL + "/statements/balance"
 
 	params := make(url.Values)
@@ -354,12 +367,12 @@ func (api *API) GetBalancesAt(account, startDate, endDate string, limit uint16) 
 		params.Add("limit", strconv.FormatUint(uint64(limit), 10))
 	}
 
-	if items, err = fetchWithinMultipleRequests[BalanceStatement, ResponseBalanceStatement](
+	if r, err = fetchWithinMultipleRequests[BalanceStatement, ResponseBalanceStatement](
 		api, apiURL, params); err != nil {
 		return
 	}
 
-	if len(items) == 0 {
+	if len(r.Payload) == 0 {
 		err = errors.New("no balances found")
 		// return
 	}
@@ -369,12 +382,17 @@ func (api *API) GetBalancesAt(account, startDate, endDate string, limit uint16) 
 
 // Отримання транзакцій за певний інтервал.
 //
+// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
+// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
+// отриманих body розділених "\r\n\r\n".
+// @see fetchWithinMultipleRequests
+//
 //	acc        - номер банківського рахунку
 //	startDate  - ДД-ММ-РРРР - дата початку (обов’язковий параметр)
 //	endDate    - ДД-ММ-РРРР - дата закінчення (необов’язковий параметр)
 //	followId   - ID наступної пачки з відповіді (необов’язковий параметр)
 //	limit      - кількість записів у пачці (за замовчуванням 20), максимальне значення - 500, рекомендується використовувати не більше 100
-func (api *API) GetTransactionsAt(account, startDate, endDate string, limit uint16) (items []TransactionStatement, err error) {
+func (api *API) GetTransactionsAt(account, startDate, endDate string, limit uint16) (r ResponseWrapper[[]TransactionStatement], err error) {
 	apiURL := API_URL + "/statements/transactions"
 
 	params := make(url.Values)
@@ -389,16 +407,31 @@ func (api *API) GetTransactionsAt(account, startDate, endDate string, limit uint
 		params.Add("limit", strconv.FormatUint(uint64(limit), 10))
 	}
 
-	if items, err = fetchWithinMultipleRequests[TransactionStatement, ResponseTransactionStatement](
+	if r, err = fetchWithinMultipleRequests[TransactionStatement, ResponseTransactionStatement](
 		api, apiURL, params); err != nil {
 		return
+	}
+
+	// api.logResponse(r.Response)
+
+	if len(r.Payload) == 0 {
+		err = errors.New("no transactions found")
+		// return
 	}
 
 	return
 }
 
 // Отримання транзакцій проміжних даних (з lastday по today)
-func (api *API) GetInterimTransactions(account string, limit uint16) (items []TransactionStatement, err error) {
+//
+// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
+// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
+// отриманих body розділених "\r\n\r\n".
+// @see fetchWithinMultipleRequests
+//
+//	account - банківський рахунок (в форматі IBAN)
+//	limit   - ліміт переліку даних (за один запит)
+func (api *API) GetInterimTransactions(account string, limit uint16) (r ResponseWrapper[[]TransactionStatement], err error) {
 	apiURL := API_URL + "/statements/transactions/interim"
 
 	params := make(url.Values)
@@ -408,15 +441,15 @@ func (api *API) GetInterimTransactions(account string, limit uint16) (items []Tr
 		params.Add("limit", strconv.FormatUint(uint64(limit), 10))
 	}
 
-	if items, err = fetchWithinMultipleRequests[TransactionStatement, ResponseTransactionStatement](
+	if r, err = fetchWithinMultipleRequests[TransactionStatement, ResponseTransactionStatement](
 		api, apiURL, params); err != nil {
 		return
 	}
 
-	// api.logResponse(resp)
+	// api.logResponse(r.Response)
 
-	if len(items) == 0 {
-		err = errors.New("no interim transactions found")
+	if len(r.Payload) == 0 {
+		err = errors.New("no transactions found")
 		// return
 	}
 
@@ -424,7 +457,15 @@ func (api *API) GetInterimTransactions(account string, limit uint16) (items []Tr
 }
 
 // Отримати транзакції за останній підсумковий день
-func (api *API) GetFinalTransactions(account string, limit uint16) (items []TransactionStatement, err error) {
+//
+// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
+// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
+// отриманих body розділених "\r\n\r\n".
+// @see fetchWithinMultipleRequests
+//
+//	account - банківський рахунок (в форматі IBAN)
+//	limit   - ліміт переліку даних (за один запит)
+func (api *API) GetFinalTransactions(account string, limit uint16) (r ResponseWrapper[[]TransactionStatement], err error) {
 	apiURL := API_URL + "/statements/transactions/final"
 
 	params := make(url.Values)
@@ -434,8 +475,15 @@ func (api *API) GetFinalTransactions(account string, limit uint16) (items []Tran
 		params.Add("limit", strconv.FormatUint(uint64(limit), 10))
 	}
 
-	items, err = fetchWithinMultipleRequests[TransactionStatement, ResponseTransactionStatement](
+	r, err = fetchWithinMultipleRequests[TransactionStatement, ResponseTransactionStatement](
 		api, apiURL, params)
+
+	// api.logResponse(r.Response)
+
+	if len(r.Payload) == 0 {
+		err = errors.New("no transactions found")
+		// return
+	}
 
 	return
 }
