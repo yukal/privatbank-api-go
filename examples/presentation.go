@@ -9,11 +9,11 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/yukal/privatbank"
+	pbapi "github.com/yukal/privatbank-api-go"
 )
 
 type ApiPresentation struct {
-	api         *privatbank.API
+	api         *pbapi.API
 	bankAccount string
 	EOL         string
 }
@@ -26,7 +26,7 @@ func init() {
 	}
 }
 
-func NewPresentation(api *privatbank.API) *ApiPresentation {
+func NewPresentation(api *pbapi.API) *ApiPresentation {
 	return &ApiPresentation{
 		bankAccount: "UA991112220000026001234567890",
 		api:         api,
@@ -35,7 +35,7 @@ func NewPresentation(api *privatbank.API) *ApiPresentation {
 
 func (p *ApiPresentation) GetStatementsSettings() {
 	var (
-		rw  privatbank.ResponseWrapper[privatbank.SettingsStatement]
+		rw  pbapi.ResponseWrapper[pbapi.SettingsStatement]
 		err error
 	)
 
@@ -55,7 +55,7 @@ func (p *ApiPresentation) GetStatementsTransactionsAt() {
 		startDate        = "28-04-2025"
 		endDate          = "30-04-2025"
 
-		rw  privatbank.ResponseWrapper[[]privatbank.TransactionStatement]
+		rw  pbapi.ResponseWrapper[[]pbapi.TransactionStatement]
 		err error
 	)
 
@@ -73,7 +73,7 @@ func (p *ApiPresentation) GetStatementsTransactionsInterim() {
 	var (
 		limit uint16 = 100
 
-		rw  privatbank.ResponseWrapper[[]privatbank.TransactionStatement]
+		rw  pbapi.ResponseWrapper[[]pbapi.TransactionStatement]
 		err error
 	)
 
@@ -91,7 +91,7 @@ func (p *ApiPresentation) GetStatementsTransactionsFinal() {
 	var (
 		limit uint16 = 100
 
-		rw  privatbank.ResponseWrapper[[]privatbank.TransactionStatement]
+		rw  pbapi.ResponseWrapper[[]pbapi.TransactionStatement]
 		err error
 	)
 
@@ -112,7 +112,7 @@ func (p *ApiPresentation) GetStatementsBalanceAt() {
 		// date = "01-05-2025"
 		date = "31-05-2025"
 
-		rw  privatbank.ResponseWrapper[privatbank.BalanceStatement]
+		rw  pbapi.ResponseWrapper[pbapi.BalanceStatement]
 		err error
 	)
 
@@ -130,7 +130,7 @@ func (p *ApiPresentation) GetStatementsBalancesAt() {
 		startDate        = "28-04-2025"
 		endDate          = "30-04-2025"
 
-		rw  privatbank.ResponseWrapper[[]privatbank.BalanceStatement]
+		rw  pbapi.ResponseWrapper[[]pbapi.BalanceStatement]
 		err error
 	)
 
@@ -147,7 +147,7 @@ func (p *ApiPresentation) GetStatementsBalancesInterim() {
 	var (
 		limit uint16 = 100
 
-		rw  privatbank.ResponseWrapper[[]privatbank.BalanceStatement]
+		rw  pbapi.ResponseWrapper[[]pbapi.BalanceStatement]
 		err error
 	)
 
@@ -163,7 +163,7 @@ func (p *ApiPresentation) GetStatementsBalancesInterim() {
 
 func (p *ApiPresentation) GetStatementsBalanceFinal() {
 	var (
-		rw  privatbank.ResponseWrapper[privatbank.BalanceStatement]
+		rw  pbapi.ResponseWrapper[pbapi.BalanceStatement]
 		err error
 	)
 
@@ -182,7 +182,7 @@ func (p *ApiPresentation) GetCurrencyHistory() {
 		startDate = "14-05-2025"
 		endDate   = "16-05-2025"
 
-		rw  privatbank.ResponseWrapper[privatbank.ResponseCurrencyHistory]
+		rw  pbapi.ResponseWrapper[pbapi.ResponseCurrencyHistory]
 		err error
 	)
 
@@ -216,9 +216,7 @@ func (p *ApiPresentation) GetPaymentInfo() {
 	}
 }
 
-// ...............................................................................
-// ...............................................................................
-
+// ......................................................................
 // Journal
 
 func (p *ApiPresentation) GetJournalInbox() {
@@ -325,7 +323,7 @@ func (p *ApiPresentation) GetReceipt() {
 
 	defer resp.Body.Close()
 
-	if filename, err = privatbank.ExtractFilenameFromContentDisposition(resp.Header); err != nil {
+	if filename, err = pbapi.ExtractFilenameFromContentDisposition(resp.Header); err != nil {
 		filename = "receipt-" + reference + ".pdf"
 		p.writeError(err)
 		// return
@@ -371,7 +369,7 @@ func (p *ApiPresentation) GetMultipleReceiptsOf2() {
 
 	defer resp.Body.Close()
 
-	if filename, err = privatbank.ExtractFilenameFromContentDisposition(resp.Header); err != nil {
+	if filename, err = pbapi.ExtractFilenameFromContentDisposition(resp.Header); err != nil {
 		// time.RFC3339:     2006-01-02T15:04:05Z07:00
 		// time.RFC3339Nano: 2006-01-02T15:04:05.999999999Z07:00
 		fname := time.Now().Format("20060102T150405999999999Z0700")
@@ -431,7 +429,7 @@ func (p *ApiPresentation) GetMultipleReceiptsOf4() {
 
 	defer resp.Body.Close()
 
-	if filename, err = privatbank.ExtractFilenameFromContentDisposition(resp.Header); err != nil {
+	if filename, err = pbapi.ExtractFilenameFromContentDisposition(resp.Header); err != nil {
 		// time.RFC3339:     2006-01-02T15:04:05Z07:00
 		// time.RFC3339Nano: 2006-01-02T15:04:05.999999999Z07:00
 		fname := time.Now().Format("20060102T150405999999999Z0700")

@@ -1,4 +1,4 @@
-package privatbank
+package privatbankapi
 
 import (
 	"encoding/json"
@@ -40,7 +40,6 @@ type CurrencyHistoryItem struct {
 //
 // Приклад відповіді:
 //
-
 //	{
 //	    "cache_info": {
 //	        "from_cache": false
