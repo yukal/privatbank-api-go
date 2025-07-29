@@ -4,7 +4,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/yukal/privatbank"
+	pbapi "github.com/yukal/privatbank-api-go"
 )
 
 const TOKEN = "YOUR-PERSONAL-PRIVATBANK-API-TOKEN"
@@ -23,7 +23,7 @@ func main() {
 
 	defer logFile.Close()
 
-	api := privatbank.NewAPI(privatbank.APIOptions{
+	api := pbapi.NewAPI(pbapi.APIOptions{
 		Token:    TOKEN,
 		Encoding: "utf8",
 		Logger:   io.MultiWriter(os.Stdout, logFile),

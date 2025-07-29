@@ -1,3 +1,15 @@
+## [v0.15.1](https://github.com/yukal/privatbank-api-go/compare/95c60885b905465fd46162ef7c51add2b76fddb0...e4c0f81a0d76aab650b07ebe45779b90deb9f98e) – 2025-07-29
+
+### Refactors
+
+- rename module  ([a8bf2258](https://github.com/yukal/privatbank-api-go/commit/a8bf2258e6f15e1faa77f6bc4755998e88ad7b14))
+
+### Build
+
+- use go v1.24.5 ([e4c0f81a](https://github.com/yukal/privatbank-api-go/commit/e4c0f81a0d76aab650b07ebe45779b90deb9f98e))
+
+
+
 ## [v0.15.0](https://github.com/yukal/privatbank-api-go/compare/567141b192ea05d5ea39dbc879e355fded13fb50...2ef89de46854774f537659124c6871ef81138a99) – 2025-07-28
 
 ### New Features

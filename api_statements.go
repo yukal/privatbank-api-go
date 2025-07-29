@@ -1,4 +1,4 @@
-package privatbank
+package privatbankapi
 
 import (
 	"encoding/json"
