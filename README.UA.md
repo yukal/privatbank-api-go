@@ -1,7 +1,30 @@
 # privatbank-api-go
 API Приватбанку (на Go). [EN](README.md)
 
-В РОЗРОБЦІ.
+[![Go Reference](.github/badges/badge-goref.svg)](https://pkg.go.dev/github.com/yukal/privatbank-api-go)
+![Under Construction](.github/badges/badge-underconstruct.svg)
+
+
+## Встановлення
+```bash
+# отримати останню версію
+go get github.com/yukal/privatbank-api-go
+
+# отримати конкретну версію
+go get github.com/yukal/privatbank-api-go@v0.15.2
+```
+
+Імпорт:
+
+```bash
+# імпорт за допомогою псевдоніма
+import pb "github.com/yukal/privatbank-api-go"
+
+# або:
+import (
+  . "github.com/yukal/privatbank-api-go"
+)
+```
 
 Доступні API методи:
 - api.[GetCurrencyHistory](api_currency.go#L123)       – Отримання історії курсів валют ([demo](./examples/presentation.go#L180))
@@ -26,7 +49,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/yukal/privatbank"
+	pb "github.com/yukal/privatbank-api-go"
 )
 
 func main() {
@@ -43,7 +66,7 @@ func main() {
 
 	defer logFile.Close()
 
-	api := privatbank.NewAPI(privatbank.APIOptions{
+	api := pb.NewAPI(pb.APIOptions{
 		// Тип кодування відповідей з серверу
 		Encoding: "utf8",
 		Token:    "YOUR-PERSONAL-PRIVATBANK-API-TOKEN",
@@ -53,7 +76,7 @@ func main() {
 	var (
         // Ваш банківський рахунок у форматі IBAN
 		account = "UAXXNNNNNN0000029001234567890"
-		data    privatbank.ResponseWrapper[privatbank.BalanceStatement]
+		data    pb.ResponseWrapper[pb.BalanceStatement]
 	)
 
 	if data, err = api.GetBalance(account); err != nil {
@@ -65,7 +88,7 @@ func main() {
 	// data.RawBody
 	// data.Payload
 
-	fmt.Printf("%s %s %s\b",
+	fmt.Printf("%s %s %s\n",
 		data.Payload.AccountName,
 		data.Payload.BalanceInEq,
 		data.Payload.BalanceOutEq,

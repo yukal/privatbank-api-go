@@ -1,7 +1,30 @@
 # privatbank-api-go
 PrivatBank API based on Go. [UA](README.UA.md)
 
-UNDER CONSTRUCTION.
+[![Go Reference](.github/badges/badge-goref.svg)](https://pkg.go.dev/github.com/yukal/privatbank-api-go)
+![Under Construction](.github/badges/badge-underconstruct.svg)
+
+
+## Install
+```bash
+# get latest version
+go get github.com/yukal/privatbank-api-go
+
+# get a specific version
+go get github.com/yukal/privatbank-api-go@v0.15.2
+```
+
+Import then:
+
+```bash
+# import using alias
+import pb "github.com/yukal/privatbank-api-go"
+
+# or:
+import (
+  . "github.com/yukal/privatbank-api-go"
+)
+```
 
 Available API methods:
 - api.[GetCurrencyHistory](api_currency.go#L123)       – Get currency exchange rate history ([demo](./examples/presentation.go#L180))
@@ -26,7 +49,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/yukal/privatbank"
+	pb "github.com/yukal/privatbank-api-go"
 )
 
 func main() {
@@ -43,7 +66,7 @@ func main() {
 
 	defer logFile.Close()
 
-	api := privatbank.NewAPI(privatbank.APIOptions{
+	api := pb.NewAPI(pb.APIOptions{
         // Encoding type of responses from the server
 		Encoding: "utf8",
 		Token:    "YOUR-PERSONAL-PRIVATBANK-API-TOKEN",
@@ -53,7 +76,7 @@ func main() {
 	var (
         // Your bank account in IBAN format
 		account = "UAXXNNNNNN0000029001234567890"
-		data    privatbank.ResponseWrapper[privatbank.BalanceStatement]
+		data    pb.ResponseWrapper[pb.BalanceStatement]
 	)
 
 	if data, err = api.GetBalance(account); err != nil {
@@ -65,7 +88,7 @@ func main() {
 	// data.RawBody
 	// data.Payload
 
-	fmt.Printf("%s %s %s\b",
+	fmt.Printf("%s %s %s\n",
 		data.Payload.AccountName,
 		data.Payload.BalanceInEq,
 		data.Payload.BalanceOutEq,
