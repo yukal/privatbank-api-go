@@ -17,7 +17,7 @@ The library simplifies integration with bank services, automates financial opera
 go get github.com/yukal/privatbank-api-go
 
 # get a specific version
-go get github.com/yukal/privatbank-api-go@v0.15.2
+go get github.com/yukal/privatbank-api-go@v0.16.0
 ```
 
 ### Demo
