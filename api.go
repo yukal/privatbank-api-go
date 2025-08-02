@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"runtime"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -23,6 +22,9 @@ const (
 
 	// Limitation per Request
 	LIMIT_DATA = 100
+
+	DateOnly = "02.01.2006"
+	// DateTime = "02.01.2006 15:04:05"
 )
 
 type API struct {
@@ -61,7 +63,19 @@ type ResponseMetaData struct {
 	NextPageId    string `json:"next_page_id"`
 }
 
-var eol string = "\n"
+var (
+	eol      string = "\n"
+	Location *time.Location
+)
+
+func init() {
+	var err error
+
+	if Location, err = time.LoadLocation("Europe/Kyiv"); err != nil {
+		// Обробка помилки, якщо дані про часові пояси недоступні
+		log.Fatalf("error loading time zone: %v", err)
+	}
+}
 
 func NewAPI(options APIOptions) *API {
 	if options.Token == "" {
