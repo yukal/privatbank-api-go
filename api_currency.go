@@ -2,7 +2,6 @@ package privatbank
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -105,9 +104,9 @@ type CurrencyHistoryItem struct {
 //	nbuRate     – rate of the National Bank of Ukraine (NBU).
 func (api *API) GetCurrency() (data ResponseWrapper[ResponseCurrency], err error) {
 	var (
-		// responseData ResponseCurrencyHistory
-		resp *http.Response
-		body []byte
+		responseData ResponseCurrency
+		resp         *http.Response
+		body         []byte
 	)
 
 	// apiURL := buildApiURL("/proxy/currency/", url.Values{})
@@ -123,17 +122,15 @@ func (api *API) GetCurrency() (data ResponseWrapper[ResponseCurrency], err error
 		return
 	}
 
-	fmt.Printf("%s\n\n", body)
+	if err = json.Unmarshal(body, &responseData); err != nil {
+		return
+	}
 
-	// if err = json.Unmarshal(body, &responseData); err != nil {
-	// 	return
-	// }
-
-	// data = ResponseWrapper[ResponseCurrencyHistory]{
-	// 	Response: resp,
-	// 	RawBody:  body,
-	// 	Payload:  responseData,
-	// }
+	data = ResponseWrapper[ResponseCurrency]{
+		Response: resp,
+		RawBody:  body,
+		Payload:  responseData,
+	}
 
 	return
 }
