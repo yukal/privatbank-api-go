@@ -1,4 +1,4 @@
-package privatbankapi
+package privatbank
 
 // Package provides a simple HTTP agent for making requests to an API.
 // It includes methods for GET and POST requests, setting headers, and handling responses.
