@@ -4,10 +4,8 @@ import (
 	"io"
 	"os"
 
-	pbapi "github.com/yukal/privatbank-api-go"
+	pb "github.com/yukal/privatbank-api-go"
 )
-
-const TOKEN = "YOUR-PERSONAL-PRIVATBANK-API-TOKEN"
 
 func main() {
 	var (
@@ -23,45 +21,65 @@ func main() {
 
 	defer logFile.Close()
 
-	api := pbapi.NewAPI(pbapi.APIOptions{
-		Token:    TOKEN,
+	api := pb.NewAPI(pb.APIOptions{
+		Token:    mustLoadToken(".data/.token"),
 		Encoding: "utf8",
-		Logger:   io.MultiWriter(os.Stdout, logFile),
 	})
 
-	pb := NewPresentation(api)
+	p := NewPresentationWrapper(api,
+		io.MultiWriter(os.Stdout, logFile))
+
+	// Public API
+
+	p.PublicGetCurrency()
+	// p.PublicGetCurrencyHistoryAt()
 
 	// ............................
 	// Statement
 
-	pb.GetStatementsSettings()
+	// p.GetStatementsSettings()
 
-	// pb.GetStatementsBalanceAt()
-	// pb.GetStatementsBalancesAt()
-	// pb.GetStatementsBalancesInterim()
-	// pb.GetStatementsBalanceFinal()
+	// p.GetStatementsBalanceAt()
+	// p.GetStatementsBalancesAt()
+	// p.GetStatementsBalancesInterim()
+	// p.GetStatementsBalanceFinal()
 
-	// pb.GetStatementsTransactionsAt()
-	// pb.GetStatementsTransactionsInterim()
-	// pb.GetStatementsTransactionsFinal()
+	// p.GetStatementsTransactionsAt()
+	// p.GetStatementsTransactionsInterim()
+	// p.GetStatementsTransactionsFinal()
 
 	// ............................
 	// Currency
 
-	// pb.GetCurrencyHistory()
+	// p.GetCurrency()
+	// p.GetCurrencyHistory()
 
 	// ............................
 	// Journal
 
-	// pb.GetJournalInbox()
-	// pb.GetJournalOutbox()
-	// pb.GetJournalAll()
-	// pb.GetPaysheetsJournal()
+	// p.GetJournalInbox()
+	// p.GetJournalOutbox()
+	// p.GetJournalAll()
+	// p.GetPaysheetsJournal()
 
 	// ............................
 	// Other
 
-	// pb.GetReceipt()
-	// pb.GetMultipleReceiptsOf2()
-	// pb.GetMultipleReceiptsOf4()
+	// p.GetReceipt()
+	// p.GetMultipleReceiptsOf2()
+	// p.GetMultipleReceiptsOf4()
+}
+
+func mustLoadToken(fpath string) string {
+	var (
+		err  error
+		body []byte
+	)
+
+	if body, err = os.ReadFile(fpath); err != nil {
+		os.Stderr.WriteString("unable to load token: " + err.Error() + "\r\n")
+		os.Exit(1)
+	}
+
+	return string(body)
 }

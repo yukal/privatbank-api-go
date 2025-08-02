@@ -1,19 +1,19 @@
-package privatbankapi
+package privatbank
 
 import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"runtime"
-	"strconv"
-	"strings"
 	"time"
 )
 
 const (
-	API_URL = "https://acp.privatbank.ua/api"
+	URL_API_PUBLIC    = "https://api.privatbank.ua/p24api"
+	URL_API_CORPORATE = "https://acp.privatbank.ua/api"
 
 	// Response Status Codes
 
@@ -22,19 +22,19 @@ const (
 
 	// Limitation per Request
 	LIMIT_DATA = 100
+
+	DateOnly = "02.01.2006"
+	// DateTime = "02.01.2006 15:04:05"
 )
 
 type API struct {
-	Logger    io.Writer
-	httpAgent *HttpAgent
-
+	httpAgent     *HttpAgent
 	timeoutPerReq time.Duration
 }
 
 type APIOptions struct {
 	Token    string
 	Encoding string
-	Logger   io.Writer
 
 	// Timeout per request
 	//  - default 200 milliseconds
@@ -63,7 +63,19 @@ type ResponseMetaData struct {
 	NextPageId    string `json:"next_page_id"`
 }
 
-var eol string = "\n"
+var (
+	eol      string = "\n"
+	Location *time.Location
+)
+
+func init() {
+	var err error
+
+	if Location, err = time.LoadLocation("Europe/Kyiv"); err != nil {
+		// Обробка помилки, якщо дані про часові пояси недоступні
+		log.Fatalf("error loading time zone: %v", err)
+	}
+}
 
 func NewAPI(options APIOptions) *API {
 	if options.Token == "" {
@@ -82,50 +94,18 @@ func NewAPI(options APIOptions) *API {
 		panic("Unsupported encoding: " + options.Encoding)
 	}
 
-	logger := io.Discard
-	// options.Logger = io.Discard
-	// options.Logger = os.Stdout
-
-	if options.Logger != nil {
-		logger = options.Logger
-	}
-
 	if runtime.GOOS == "windows" {
 		eol = "\r\n"
 	}
 
 	return &API{
-		Logger:        logger,
 		httpAgent:     NewHttpAgent(options.Token, options.Encoding),
 		timeoutPerReq: max(200*time.Millisecond, options.TimeoutPerReq),
 	}
 }
 
-func (a *API) logResponse(resp *http.Response) {
-	text := resp.Status + " " +
-		resp.Proto + " " +
-		resp.Request.Method + " " +
-		resp.Request.URL.String() + " [" +
-		strconv.FormatInt(resp.ContentLength, 10) + "b]" + eol +
-		"Header" + eol
-
-	for key, item := range resp.Header {
-		text += "  " + key + ": " + strings.Join(item, "; ") + eol
-	}
-
-	if cookies := resp.Cookies(); len(cookies) > 0 {
-		text += eol + "Cookies"
-
-		for _, item := range resp.Cookies() {
-			text += "  " + item.String() + eol
-		}
-	}
-
-	a.Logger.Write([]byte(text + eol))
-}
-
 func buildApiURL(apiPath string, queryParams url.Values) string {
-	return API_URL + apiPath + "?" + queryParams.Encode()
+	return URL_API_CORPORATE + apiPath + "?" + queryParams.Encode()
 }
 
 func toJSONReader(payload any) (r *bytes.Reader, err error) {
@@ -159,7 +139,6 @@ func fetchWithinMultipleRequests[
 		}
 
 		defer rw.Response.Body.Close()
-		a.logResponse(rw.Response)
 
 		if body, err = io.ReadAll(rw.Response.Body); err != nil {
 			return

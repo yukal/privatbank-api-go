@@ -1,3 +1,43 @@
+## [v0.16.0](https://github.com/yukal/privatbank-api-go/compare/e4c0f81a0d76aab650b07ebe45779b90deb9f98e...a4b28496e4e35e9e9af9fe96e6d971b0571b8d8e) – 2025-08-02
+
+### New Features
+
+- **Public API:**
+  - get currency exchange ([a678b787](https://github.com/yukal/privatbank-api-go/commit/a678b7878c942f3af4099a49afd4cd73fdd160d6))
+  - get currency exchange history ([923e1ecc](https://github.com/yukal/privatbank-api-go/commit/923e1ecc7f25d723625d19df6593124ae118527c))
+
+- **Corporate API:**
+  - get currency exchange ([29f42bd0](https://github.com/yukal/privatbank-api-go/commit/29f42bd0d263c9279f393d1fbc88d7de7608e753)), ([a4b28496](https://github.com/yukal/privatbank-api-go/commit/a4b28496e4e35e9e9af9fe96e6d971b0571b8d8e))
+
+### Refactors
+
+- rename corporate API url ([20a58637](https://github.com/yukal/privatbank-api-go/commit/20a5863724cabce1ca639ec004e88d743e33c6f3))
+- remove reporter ([a02ae11a](https://github.com/yukal/privatbank-api-go/commit/a02ae11a1700e6a4a643a032ca5ff59c7731df5a))
+- rename package ([bfd7b4ab](https://github.com/yukal/privatbank-api-go/commit/bfd7b4ab920965a6ec4cfbbfda5a537235d1e1d5))
+- improve examples ([2421ff1e](https://github.com/yukal/privatbank-api-go/commit/2421ff1e08e69f27a60b238f370b63bcccdd1434))
+
+### Chores
+
+- improve brand contrast ([59a9e85c](https://github.com/yukal/privatbank-api-go/commit/59a9e85c45c3770e8e0f69d981b2b6e87997e7ba))
+- add badges ([8bc881e5](https://github.com/yukal/privatbank-api-go/commit/8bc881e5c36596898580eace6a2071132265fdc3))
+- update changelog ([5fdc2bac](https://github.com/yukal/privatbank-api-go/commit/5fdc2bac13b0155c8bc996b06f383b775cf6198c))
+
+### Docs
+
+- **readme:**  update description ([4797ae8e](https://github.com/yukal/privatbank-api-go/commit/4797ae8ecbbe0900620b5be7a3e86636b2e1b080)), ([c7f00dd5](https://github.com/yukal/privatbank-api-go/commit/c7f00dd58e214cf179d71ec74c2b4c07e4aaf957)), ([cf7ea14e](https://github.com/yukal/privatbank-api-go/commit/cf7ea14ee13c8f612a85fb032a35a579540d59b0))
+- translate in english  ([0ee1e70f](https://github.com/yukal/privatbank-api-go/commit/0ee1e70f8a474e9d24ca42a3cb21129b4b1993ed))
+
+### Build
+
+- use decimal ([f01eaea0](https://github.com/yukal/privatbank-api-go/commit/f01eaea05cfbe1fa93bc45da969b7ac034cf9b95))
+- use go v1.24 ([257d77e3](https://github.com/yukal/privatbank-api-go/commit/257d77e3f8b7477c6b59e32f1af72fbd9a61635a))
+
+### Continuous Integration
+
+- add dependabot ([5d311442](https://github.com/yukal/privatbank-api-go/commit/5d3114425015df11f73d3c9d9513c9cbe0b51f65))
+
+
+
 ## [v0.15.1](https://github.com/yukal/privatbank-api-go/compare/95c60885b905465fd46162ef7c51add2b76fddb0...e4c0f81a0d76aab650b07ebe45779b90deb9f98e) – 2025-07-29
 
 ### Refactors

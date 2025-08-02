@@ -1,4 +1,4 @@
-package privatbankapi
+package privatbank
 
 import (
 	"encoding/json"
@@ -138,12 +138,12 @@ func (r ResponseTransactionStatement) GetMetaData() ResponseMetaData {
 
 }
 
-// Отримання серверних дат.
-// Якщо значення phase відмінне від WRK, то в цей період запити до API можуть повертатися з помилками.
+// Get server dates.
+// If the value of phase is not WRK, API requests during this period may return errors.
 //
 //	GET /api/statements/settings
 //
-// Приклад відповіді:
+// Example response:
 //
 //	{
 //		"status": "SUCCESS",
@@ -156,11 +156,11 @@ func (r ResponseTransactionStatement) GetMetaData() ResponseMetaData {
 //				...
 //				"01.01.2020 00:00:00"
 //			],
-//			"today": "30.03.2020 00:00:00", // дата поточного опер. дня (проміжна виписка)
-//			"lastday": "29.03.2020 00:00:00", // дата минулого опер. дня (проміжна виписка)
-//			"work_balance": "N", // чи проходять регламент завдання, N – можна робити запити, Y – запити не робити
+//			"today": "30.03.2020 00:00:00", // current operational day (interim statement)
+//			"lastday": "29.03.2020 00:00:00", // previous operational day (interim statement)
+//			"work_balance": "N", // whether regulatory tasks are running, N – requests allowed, Y – requests not allowed
 //			"server_date_time": "30.03.2020 12:03:51",
-//			"date_final_statement": "28.03.2020 00:00:00" // дата, включно з якої є підсумкова виписка
+//			"date_final_statement": "28.03.2020 00:00:00" // date of the final statement
 //		}
 //	}
 func (api *API) GetSettingsStatement() (settings ResponseWrapper[SettingsStatement], err error) {
@@ -170,14 +170,13 @@ func (api *API) GetSettingsStatement() (settings ResponseWrapper[SettingsStateme
 		body         []byte
 	)
 
-	apiURL := API_URL + "/statements/settings"
+	apiURL := URL_API_CORPORATE + "/statements/settings"
 
 	if httpResponse, err = api.httpAgent.Get(apiURL); err != nil {
 		return
 	}
 
 	defer httpResponse.Body.Close()
-	api.logResponse(httpResponse)
 
 	if body, err = io.ReadAll(httpResponse.Body); err != nil {
 		return
@@ -188,7 +187,6 @@ func (api *API) GetSettingsStatement() (settings ResponseWrapper[SettingsStateme
 	}
 
 	if responseData.Status != RESPONSE_SUCCESS {
-		fmt.Fprintf(api.Logger, "Error getting statements settings: %s\n", body)
 		err = fmt.Errorf("error getting statements settings: %s", responseData.Status)
 		return
 	}
@@ -202,7 +200,7 @@ func (api *API) GetSettingsStatement() (settings ResponseWrapper[SettingsStateme
 	return
 }
 
-// Отримати баланс рахунку за останній підсумковий день
+// Get account balance for the last final day
 func (api *API) GetBalance(accout string) (balance ResponseWrapper[BalanceStatement], err error) {
 	var (
 		responseData ResponseBalanceStatement
@@ -210,7 +208,7 @@ func (api *API) GetBalance(accout string) (balance ResponseWrapper[BalanceStatem
 		body         []byte
 	)
 
-	apiURL := API_URL + "/statements/balance/final?limit=1&acc=" +
+	apiURL := URL_API_CORPORATE + "/statements/balance/final?limit=1&acc=" +
 		url.QueryEscape(accout)
 
 	if resp, err = api.httpAgent.Get(apiURL); err != nil {
@@ -218,7 +216,6 @@ func (api *API) GetBalance(accout string) (balance ResponseWrapper[BalanceStatem
 	}
 
 	defer resp.Body.Close()
-	api.logResponse(resp)
 
 	if body, err = io.ReadAll(resp.Body); err != nil {
 		return
@@ -229,7 +226,6 @@ func (api *API) GetBalance(accout string) (balance ResponseWrapper[BalanceStatem
 	}
 
 	if responseData.Status != RESPONSE_SUCCESS {
-		fmt.Fprintf(api.Logger, "Error getting balance: %s\n", body)
 		err = fmt.Errorf("error getting balance: %s", responseData.Status)
 		return
 	}
@@ -248,7 +244,7 @@ func (api *API) GetBalance(accout string) (balance ResponseWrapper[BalanceStatem
 	return
 }
 
-// Отримати баланс рахунку за конкретно вказаний день
+// Get account balance for a specific day
 func (api *API) GetBalanceAt(account, date string) (data ResponseWrapper[BalanceStatement], err error) {
 	var (
 		resp         *http.Response
@@ -262,7 +258,7 @@ func (api *API) GetBalanceAt(account, date string) (data ResponseWrapper[Balance
 	params.Add("endDate", date)
 	// params.Add("limit", strconv.FormatUint(uint64(LIMIT_DATA), 10))
 
-	apiURL := API_URL + "/statements/balance" + "?" + params.Encode()
+	apiURL := URL_API_CORPORATE + "/statements/balance" + "?" + params.Encode()
 
 	if resp, err = api.httpAgent.Get(apiURL); err != nil {
 		return
@@ -274,7 +270,6 @@ func (api *API) GetBalanceAt(account, date string) (data ResponseWrapper[Balance
 	}
 
 	defer resp.Body.Close()
-	api.logResponse(resp)
 
 	if body, err = io.ReadAll(resp.Body); err != nil {
 		err = fmt.Errorf("io.read-all: %v", err)
@@ -287,7 +282,6 @@ func (api *API) GetBalanceAt(account, date string) (data ResponseWrapper[Balance
 	}
 
 	if responseData.Status != RESPONSE_SUCCESS {
-		fmt.Fprintf(api.Logger, "Error getting statements settings: %s\n", body)
 		err = fmt.Errorf("error getting statements settings: %s", responseData.Status)
 		return
 	}
@@ -306,17 +300,17 @@ func (api *API) GetBalanceAt(account, date string) (data ResponseWrapper[Balance
 	return
 }
 
-// Отримати проміжні дані – з lastday по today.
+// Get interim balances – from lastday to today.
 //
-// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
-// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
-// отриманих body розділених "\r\n\r\n".
+// Since the method may generate additional requests depending on the limit argument,
+// it will return the last successful response object, and RawBody will contain several
+// bodies separated by "\r\n\r\n".
 // @see fetchWithinMultipleRequests
 //
-//	account - банківський рахунок (в форматі IBAN)
-//	limit   - ліміт переліку даних (за один запит)
+//	account - bank account (IBAN format)
+//	limit   - data limit (per request)
 func (api *API) GetInterimBalances(account string, limit uint16) (r ResponseWrapper[[]BalanceStatement], err error) {
-	apiURL := API_URL + "/statements/balance/interim"
+	apiURL := URL_API_CORPORATE + "/statements/balance/interim"
 
 	params := make(url.Values)
 	params.Add("acc", account)
@@ -340,20 +334,20 @@ func (api *API) GetInterimBalances(account string, limit uint16) (r ResponseWrap
 	return
 }
 
-// Отримання балансу за певний інтервал.
+// Get balances for a specific interval.
 //
-// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
-// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
-// отриманих body розділених "\r\n\r\n".
+// Since the request may generate additional requests depending on the limit argument,
+// it will return the last successful response object, and RawBody will contain several
+// bodies separated by "\r\n\r\n".
 // @see fetchWithinMultipleRequests
 //
-//	acc        - номер банківського рахунку
-//	startDate  - ДД-ММ-РРРР - дата початку (обов’язковий параметр)
-//	endDate    - ДД-ММ-РРРР - дата закінчення (необов’язковий параметр)
-//	followId   - ID наступної пачки з відповіді (необов’язковий параметр)
-//	limit      - кількість записів у пачці (за замовчуванням 20), максимальне значення - 500, рекомендується використовувати не більше 100
+//	acc        - bank account number
+//	startDate  - DD-MM-YYYY - start date (required)
+//	endDate    - DD-MM-YYYY - end date (optional)
+//	followId   - next batch ID from response (optional)
+//	limit      - number of records per batch (default 20), max 500, recommended no more than 100
 func (api *API) GetBalancesAt(account, startDate, endDate string, limit uint16) (r ResponseWrapper[[]BalanceStatement], err error) {
-	apiURL := API_URL + "/statements/balance"
+	apiURL := URL_API_CORPORATE + "/statements/balance"
 
 	params := make(url.Values)
 	params.Add("acc", account)
@@ -380,20 +374,20 @@ func (api *API) GetBalancesAt(account, startDate, endDate string, limit uint16) 
 	return
 }
 
-// Отримання транзакцій за певний інтервал.
+// Get transactions for a specific interval.
 //
-// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
-// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
-// отриманих body розділених "\r\n\r\n".
+// Since the method may generate additional requests depending on the limit argument,
+// it will return the last successful response object, and RawBody will contain several
+// bodies separated by "\r\n\r\n".
 // @see fetchWithinMultipleRequests
 //
-//	acc        - номер банківського рахунку
-//	startDate  - ДД-ММ-РРРР - дата початку (обов’язковий параметр)
-//	endDate    - ДД-ММ-РРРР - дата закінчення (необов’язковий параметр)
-//	followId   - ID наступної пачки з відповіді (необов’язковий параметр)
-//	limit      - кількість записів у пачці (за замовчуванням 20), максимальне значення - 500, рекомендується використовувати не більше 100
+//	acc        - bank account number
+//	startDate  - DD-MM-YYYY - start date (required)
+//	endDate    - DD-MM-YYYY - end date (optional)
+//	followId   - next batch ID from response (optional)
+//	limit      - number of records per batch (default 20), max 500, recommended no more than 100
 func (api *API) GetTransactionsAt(account, startDate, endDate string, limit uint16) (r ResponseWrapper[[]TransactionStatement], err error) {
-	apiURL := API_URL + "/statements/transactions"
+	apiURL := URL_API_CORPORATE + "/statements/transactions"
 
 	params := make(url.Values)
 	params.Add("acc", account)
@@ -422,17 +416,17 @@ func (api *API) GetTransactionsAt(account, startDate, endDate string, limit uint
 	return
 }
 
-// Отримання транзакцій проміжних даних (з lastday по today)
+// Get interim transactions (from lastday to today)
 //
-// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
-// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
-// отриманих body розділених "\r\n\r\n".
+// Since the request may generate additional requests depending on the limit argument,
+// it will return the last successful response object, and RawBody will contain several
+// bodies separated by "\r\n\r\n".
 // @see fetchWithinMultipleRequests
 //
-//	account - банківський рахунок (в форматі IBAN)
-//	limit   - ліміт переліку даних (за один запит)
+//	account - bank account (IBAN format)
+//	limit   - data limit (per request)
 func (api *API) GetInterimTransactions(account string, limit uint16) (r ResponseWrapper[[]TransactionStatement], err error) {
-	apiURL := API_URL + "/statements/transactions/interim"
+	apiURL := URL_API_CORPORATE + "/statements/transactions/interim"
 
 	params := make(url.Values)
 	params.Add("acc", account)
@@ -456,17 +450,17 @@ func (api *API) GetInterimTransactions(account string, limit uint16) (r Response
 	return
 }
 
-// Отримати транзакції за останній підсумковий день
+// Get transactions for the last final day
 //
-// Оскільки даний запит може формувати додаткові request-запити відносно аргумента limit,
-// даний метод поверне останній успішний response обʼєкт, а RawBody буде містити кілька
-// отриманих body розділених "\r\n\r\n".
+// Since the method may generate additional requests depending on the limit argument,
+// it will return the last successful response object, and RawBody will contain several
+// bodies separated by "\r\n\r\n".
 // @see fetchWithinMultipleRequests
 //
-//	account - банківський рахунок (в форматі IBAN)
-//	limit   - ліміт переліку даних (за один запит)
+//	account - bank account (IBAN format)
+//	limit   - data limit (per request)
 func (api *API) GetFinalTransactions(account string, limit uint16) (r ResponseWrapper[[]TransactionStatement], err error) {
-	apiURL := API_URL + "/statements/transactions/final"
+	apiURL := URL_API_CORPORATE + "/statements/transactions/final"
 
 	params := make(url.Values)
 	params.Add("acc", account)

@@ -1,4 +1,4 @@
-package privatbankapi
+package privatbank
 
 import (
 	"encoding/json"
@@ -8,17 +8,39 @@ import (
 )
 
 // ..............................
-// Отримання курсів валют
+// Currency exchange rate
+
+type ResponseCacheInfo struct {
+	FromCache  bool   `json:"from_cache"`
+	CacheTime  string `json:"cache_time"`  // (optional) 1526645093874
+	ServerTime string `json:"server_time"` // (optional) 1526645134001
+}
+
+type ResponseCurrency struct {
+	CacheInfo ResponseCacheInfo `json:"cache_info"`
+	USD       CurrencySaleBuy   `json:"USD"`
+	EUR       CurrencySaleBuy   `json:"EUR"`
+	// Data      []CurrencyItem    `json:"history"`
+}
 
 type ResponseCurrencyHistory struct {
-	CacheInfo struct {
-		FromCache bool `json:"from_cache"`
-	} `json:"cache_info"`
-
-	Data struct {
+	CacheInfo ResponseCacheInfo `json:"cache_info"`
+	Data      struct {
 		SessionState any                   `json:"sessionState"`
 		History      []CurrencyHistoryItem `json:"history"`
 	} `json:"data"`
+}
+
+type CurrencySaleBuy struct {
+	Sale CurrencyItem `json:"S"`
+	Buy  CurrencyItem `json:"B"`
+}
+
+type CurrencyItem struct {
+	Date      string `json:"date"`
+	Rate      string `json:"rate"`
+	RateDelta string `json:"rate_delta"`
+	NbuRate   string `json:"nbuRate"`
 }
 
 type CurrencyHistoryItem struct {
@@ -31,14 +53,96 @@ type CurrencyHistoryItem struct {
 	RateBuyDelta  string `json:"rate_b_delta"`
 }
 
-// Отримання історії курсів валют
+// Get currency exchange rate
 //
-//	startDate   ДД-ММ-РРРР
-//	endDate     ДД-ММ-РРРР
+//	{
+//	   "cache_info": {
+//	           "from_cache": true,
+//	           "cache_time": 1526645093874,  // (optional)
+//	           "server_time": 1526645134001  // (optional)
+//	   },
+//	   "USD": {
+//	           "B": {
+//	                   "date": "30-07-2025 10:00:49",
+//	                   "rate": "41.5900000",
+//	                   "rate_delta": "0.0600000",
+//	                   "nbuRate": "41.7886000"
+//	           },
+//	           "S": {
+//	                   "date": "30-07-2025 10:00:49",
+//	                   "rate": "41.9900000",
+//	                   "rate_delta": "0.0600000",
+//	                   "nbuRate": "41.7886000"
+//	           }
+//	   },
+//	   "EUR": {
+//	           "B": {
+//	                   "date": "30-07-2025 10:00:49",
+//	                   "rate": "48.0550000",
+//	                   "rate_delta": "0.2550000",
+//	                   "nbuRate": "48.2240000"
+//	           },
+//	           "S": {
+//	                   "date": "30-07-2025 10:00:49",
+//	                   "rate": "48.5550000",
+//	                   "rate_delta": "-0.1450000",
+//	                   "nbuRate": "48.2240000"
+//	           }
+//	   }
+//	}
 //
-//	startDate, endDate – дата початку й закінчення періоду (не більше ніж 15 днів).
+// Where:
 //
-// Приклад відповіді:
+//	from_cache  – indicates if data is cached;
+//	cache_time  – cache time (in milliseconds);
+//	server_time – current server time (in milliseconds);
+//	B           – buy;
+//	S           – sell;
+//	date        – exchange rate date;
+//	rate        – exchange rate;
+//	rate_delta  – exchange rate delta;
+//	nbuRate     – rate of the National Bank of Ukraine (NBU).
+func (api *API) GetCurrency() (data ResponseWrapper[ResponseCurrency], err error) {
+	var (
+		responseData ResponseCurrency
+		resp         *http.Response
+		body         []byte
+	)
+
+	// apiURL := buildApiURL("/proxy/currency/", url.Values{})
+	apiURL := URL_API_CORPORATE + "/proxy/currency"
+
+	if resp, err = api.httpAgent.Get(apiURL); err != nil {
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if body, err = io.ReadAll(resp.Body); err != nil {
+		return
+	}
+
+	if err = json.Unmarshal(body, &responseData); err != nil {
+		return
+	}
+
+	data = ResponseWrapper[ResponseCurrency]{
+		Response: resp,
+		RawBody:  body,
+		Payload:  responseData,
+	}
+
+	return
+}
+
+// Get currency exchange rate history
+//
+//	startDate   DD-MM-YYYY
+//	endDate     DD-MM-YYYY
+//
+//	startDate, endDate – start and end dates of the period (no more than 15 days).
+//
+// Example response:
 //
 //	{
 //	    "cache_info": {
@@ -69,56 +173,6 @@ type CurrencyHistoryItem struct {
 //	        ]
 //	    }
 //	}
-//
-// ...
-//
-//	{
-//	   "cache_info": {
-//	           "from_cache": true,
-//	           "cache_time": 1526645093874,
-//	           "server_time": 1526645134001
-//	   },
-//	   "USD": {
-//	           "B": {
-//	                   "date": "18-05-2018 14:00:01",
-//	                   "rate": "26.0700000",
-//	                   "rate_delta": "-0.0600000",
-//	                   "nbuRate": "26.1888140"
-//	           },
-//	           "S": {
-//	                   "date": "18-05-2018 10:04:13",
-//	                   "rate": "26.3200000",
-//	                   "rate_delta": "-0.0100000",
-//	                   "nbuRate": "26.1888140"
-//	           }
-//	   },
-//	   "EUR": {
-//	           "B": {
-//	                   "date": "18-05-2018 14:00:29",
-//	                   "rate": "30.7300000",
-//	                   "rate_delta": "-0.0700000",
-//	                   "nbuRate": "30.9158950"
-//	           },
-//	           "S": {
-//	                   "date": "18-05-2018 13:45:40",
-//	                   "rate": "31.3000000",
-//	                   "rate_delta": "0.0000000",
-//	                   "nbuRate": "30.9158950"
-//	           }
-//	   }
-//	}
-//
-// Де:
-//
-//	from_cache  – ознака кешування даних;
-//	cache_time  – час кешування (в мілісекундах);
-//	server_time – поточний час сервера (в мілісекундах);
-//	B           – купівля;
-//	S           – продаж;
-//	date        – дата курсу;
-//	rate        – курс;
-//	rate_delta  – зміна курсу;
-//	nbuRate     – курс НБУ.
 func (api *API) GetCurrencyHistory(startDate, endDate string) (data ResponseWrapper[ResponseCurrencyHistory], err error) {
 	var (
 		responseData ResponseCurrencyHistory
@@ -137,7 +191,6 @@ func (api *API) GetCurrencyHistory(startDate, endDate string) (data ResponseWrap
 	}
 
 	defer resp.Body.Close()
-	api.logResponse(resp)
 
 	if body, err = io.ReadAll(resp.Body); err != nil {
 		return

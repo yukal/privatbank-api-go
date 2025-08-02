@@ -1,4 +1,4 @@
-package privatbankapi
+package privatbank
 
 // Package provides a simple HTTP agent for making requests to an API.
 // It includes methods for GET and POST requests, setting headers, and handling responses.
@@ -17,9 +17,7 @@ const USER_AGENT = "golang-http-req"
 type HttpAgent struct {
 	token    string
 	encoding string
-
-	client *http.Client
-	// req    *http.Request
+	// client *http.Client
 }
 
 // HTTPError represents an HTTP error with status code and message.
@@ -27,6 +25,17 @@ type HTTPError struct {
 	StatusCode int
 	Message    string
 }
+
+var (
+	client = &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:       10,
+			IdleConnTimeout:    30 * time.Second,
+			DisableCompression: true,
+		},
+		Timeout: 10 * time.Second,
+	}
+)
 
 func (e *HTTPError) Error() string {
 	return e.Message
@@ -36,15 +45,6 @@ func NewHttpAgent(token, encoding string) *HttpAgent {
 	return &HttpAgent{
 		token:    token,
 		encoding: strings.ToLower(encoding),
-
-		client: &http.Client{
-			Transport: &http.Transport{
-				MaxIdleConns:       10,
-				IdleConnTimeout:    30 * time.Second,
-				DisableCompression: true,
-			},
-			Timeout: 10 * time.Second,
-		},
 	}
 }
 
@@ -62,7 +62,7 @@ func (a *HttpAgent) Get(path string) (*http.Response, error) {
 	}
 
 	a.setBasicHeaders(req)
-	return a.client.Do(req)
+	return client.Do(req)
 }
 
 func (a *HttpAgent) Post(path string, body io.Reader, headers map[string]string) (*http.Response, error) {
@@ -80,7 +80,7 @@ func (a *HttpAgent) Post(path string, body io.Reader, headers map[string]string)
 		}
 	}
 
-	return a.client.Do(req)
+	return client.Do(req)
 }
 
 func ExtractFilenameFromContentDisposition(header http.Header) (filename string, err error) {
