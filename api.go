@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	URL_API_PUBLIC    = "https://api.privatbank.ua/p24api"
 	URL_API_CORPORATE = "https://acp.privatbank.ua/api"
 
 	// Response Status Codes
