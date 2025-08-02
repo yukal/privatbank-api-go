@@ -8,7 +8,7 @@ import (
 )
 
 // ..............................
-// Отримання курсів валют
+// Currency exchange rate
 
 type ResponseCurrencyHistory struct {
 	CacheInfo struct {
@@ -31,14 +31,16 @@ type CurrencyHistoryItem struct {
 	RateBuyDelta  string `json:"rate_b_delta"`
 }
 
-// Отримання історії курсів валют
+// Get currency exchange rate
+
+// Get currency exchange rate history
 //
-//	startDate   ДД-ММ-РРРР
-//	endDate     ДД-ММ-РРРР
+//	startDate   DD-MM-YYYY
+//	endDate     DD-MM-YYYY
 //
-//	startDate, endDate – дата початку й закінчення періоду (не більше ніж 15 днів).
+//	startDate, endDate – start and end dates of the period (no more than 15 days).
 //
-// Приклад відповіді:
+// Example response:
 //
 //	{
 //	    "cache_info": {

@@ -5,11 +5,11 @@ import (
 	"net/http"
 )
 
-// Розрахункові листи.
+// Paysheets.
 
-// Отримання журналу зарплатних проєктів.
+// Get the payroll projects journal.
 //
-// Відповідь:
+// Response:
 //
 //	`content-type: application/json;charset=UTF-8`
 //	[
