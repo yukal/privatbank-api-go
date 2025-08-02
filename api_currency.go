@@ -139,7 +139,6 @@ func (api *API) GetCurrencyHistory(startDate, endDate string) (data ResponseWrap
 	}
 
 	defer resp.Body.Close()
-	api.logResponse(resp)
 
 	if body, err = io.ReadAll(resp.Body); err != nil {
 		return

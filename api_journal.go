@@ -34,8 +34,6 @@ func (a *API) GetPaysheetsJournal() (resp *http.Response, err error) {
 		return
 	}
 
-	a.logResponse(resp)
-
 	return
 }
 
@@ -56,8 +54,6 @@ func (a *API) GetJournalInbox(dateBegin, dateEnd string) (resp *http.Response, e
 		apiURL, payload, nil); err != nil {
 		return
 	}
-
-	a.logResponse(resp)
 
 	return
 }
@@ -81,8 +77,6 @@ func (a *API) GetJournalOutbox(dateBegin, dateEnd string) (resp *http.Response, 
 		return
 	}
 
-	a.logResponse(resp)
-
 	return
 }
 
@@ -104,8 +98,6 @@ func (a *API) GetJournalAll(dateBegin, dateEnd string) (resp *http.Response, err
 		apiURL, payload, nil); err != nil {
 		return
 	}
-
-	a.logResponse(resp)
 
 	return
 }

@@ -25,16 +25,13 @@ const (
 )
 
 type API struct {
-	Logger    io.Writer
-	httpAgent *HttpAgent
-
+	httpAgent     *HttpAgent
 	timeoutPerReq time.Duration
 }
 
 type APIOptions struct {
 	Token    string
 	Encoding string
-	Logger   io.Writer
 
 	// Timeout per request
 	//  - default 200 milliseconds
@@ -82,46 +79,14 @@ func NewAPI(options APIOptions) *API {
 		panic("Unsupported encoding: " + options.Encoding)
 	}
 
-	logger := io.Discard
-	// options.Logger = io.Discard
-	// options.Logger = os.Stdout
-
-	if options.Logger != nil {
-		logger = options.Logger
-	}
-
 	if runtime.GOOS == "windows" {
 		eol = "\r\n"
 	}
 
 	return &API{
-		Logger:        logger,
 		httpAgent:     NewHttpAgent(options.Token, options.Encoding),
 		timeoutPerReq: max(200*time.Millisecond, options.TimeoutPerReq),
 	}
-}
-
-func (a *API) logResponse(resp *http.Response) {
-	text := resp.Status + " " +
-		resp.Proto + " " +
-		resp.Request.Method + " " +
-		resp.Request.URL.String() + " [" +
-		strconv.FormatInt(resp.ContentLength, 10) + "b]" + eol +
-		"Header" + eol
-
-	for key, item := range resp.Header {
-		text += "  " + key + ": " + strings.Join(item, "; ") + eol
-	}
-
-	if cookies := resp.Cookies(); len(cookies) > 0 {
-		text += eol + "Cookies"
-
-		for _, item := range resp.Cookies() {
-			text += "  " + item.String() + eol
-		}
-	}
-
-	a.Logger.Write([]byte(text + eol))
 }
 
 func buildApiURL(apiPath string, queryParams url.Values) string {
@@ -159,7 +124,6 @@ func fetchWithinMultipleRequests[
 		}
 
 		defer rw.Response.Body.Close()
-		a.logResponse(rw.Response)
 
 		if body, err = io.ReadAll(rw.Response.Body); err != nil {
 			return

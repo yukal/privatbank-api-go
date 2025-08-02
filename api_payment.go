@@ -19,8 +19,6 @@ func (a *API) GetPaymentInfo(paymentRef string) (resp *http.Response, err error)
 		return
 	}
 
-	a.logResponse(resp)
-
 	return
 }
 
@@ -58,8 +56,6 @@ func (a *API) GetReceipt(account, reference, refn string) (resp *http.Response, 
 		return
 	}
 
-	a.logResponse(resp)
-
 	return
 }
 
@@ -94,8 +90,6 @@ func (a *API) GetMultipleReceipts(transactions []map[string]string, perPage uint
 		apiURL, payload, headers); err != nil {
 		return
 	}
-
-	a.logResponse(resp)
 
 	return
 }

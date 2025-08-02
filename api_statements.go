@@ -177,7 +177,6 @@ func (api *API) GetSettingsStatement() (settings ResponseWrapper[SettingsStateme
 	}
 
 	defer httpResponse.Body.Close()
-	api.logResponse(httpResponse)
 
 	if body, err = io.ReadAll(httpResponse.Body); err != nil {
 		return
@@ -188,7 +187,6 @@ func (api *API) GetSettingsStatement() (settings ResponseWrapper[SettingsStateme
 	}
 
 	if responseData.Status != RESPONSE_SUCCESS {
-		fmt.Fprintf(api.Logger, "Error getting statements settings: %s\n", body)
 		err = fmt.Errorf("error getting statements settings: %s", responseData.Status)
 		return
 	}
@@ -218,7 +216,6 @@ func (api *API) GetBalance(accout string) (balance ResponseWrapper[BalanceStatem
 	}
 
 	defer resp.Body.Close()
-	api.logResponse(resp)
 
 	if body, err = io.ReadAll(resp.Body); err != nil {
 		return
@@ -229,7 +226,6 @@ func (api *API) GetBalance(accout string) (balance ResponseWrapper[BalanceStatem
 	}
 
 	if responseData.Status != RESPONSE_SUCCESS {
-		fmt.Fprintf(api.Logger, "Error getting balance: %s\n", body)
 		err = fmt.Errorf("error getting balance: %s", responseData.Status)
 		return
 	}
@@ -274,7 +270,6 @@ func (api *API) GetBalanceAt(account, date string) (data ResponseWrapper[Balance
 	}
 
 	defer resp.Body.Close()
-	api.logResponse(resp)
 
 	if body, err = io.ReadAll(resp.Body); err != nil {
 		err = fmt.Errorf("io.read-all: %v", err)
@@ -287,7 +282,6 @@ func (api *API) GetBalanceAt(account, date string) (data ResponseWrapper[Balance
 	}
 
 	if responseData.Status != RESPONSE_SUCCESS {
-		fmt.Fprintf(api.Logger, "Error getting statements settings: %s\n", body)
 		err = fmt.Errorf("error getting statements settings: %s", responseData.Status)
 		return
 	}
