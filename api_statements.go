@@ -170,7 +170,7 @@ func (api *API) GetSettingsStatement() (settings ResponseWrapper[SettingsStateme
 		body         []byte
 	)
 
-	apiURL := API_URL + "/statements/settings"
+	apiURL := URL_API_CORPORATE + "/statements/settings"
 
 	if httpResponse, err = api.httpAgent.Get(apiURL); err != nil {
 		return
@@ -210,7 +210,7 @@ func (api *API) GetBalance(accout string) (balance ResponseWrapper[BalanceStatem
 		body         []byte
 	)
 
-	apiURL := API_URL + "/statements/balance/final?limit=1&acc=" +
+	apiURL := URL_API_CORPORATE + "/statements/balance/final?limit=1&acc=" +
 		url.QueryEscape(accout)
 
 	if resp, err = api.httpAgent.Get(apiURL); err != nil {
@@ -262,7 +262,7 @@ func (api *API) GetBalanceAt(account, date string) (data ResponseWrapper[Balance
 	params.Add("endDate", date)
 	// params.Add("limit", strconv.FormatUint(uint64(LIMIT_DATA), 10))
 
-	apiURL := API_URL + "/statements/balance" + "?" + params.Encode()
+	apiURL := URL_API_CORPORATE + "/statements/balance" + "?" + params.Encode()
 
 	if resp, err = api.httpAgent.Get(apiURL); err != nil {
 		return
@@ -316,7 +316,7 @@ func (api *API) GetBalanceAt(account, date string) (data ResponseWrapper[Balance
 //	account - bank account (IBAN format)
 //	limit   - data limit (per request)
 func (api *API) GetInterimBalances(account string, limit uint16) (r ResponseWrapper[[]BalanceStatement], err error) {
-	apiURL := API_URL + "/statements/balance/interim"
+	apiURL := URL_API_CORPORATE + "/statements/balance/interim"
 
 	params := make(url.Values)
 	params.Add("acc", account)
@@ -353,7 +353,7 @@ func (api *API) GetInterimBalances(account string, limit uint16) (r ResponseWrap
 //	followId   - next batch ID from response (optional)
 //	limit      - number of records per batch (default 20), max 500, recommended no more than 100
 func (api *API) GetBalancesAt(account, startDate, endDate string, limit uint16) (r ResponseWrapper[[]BalanceStatement], err error) {
-	apiURL := API_URL + "/statements/balance"
+	apiURL := URL_API_CORPORATE + "/statements/balance"
 
 	params := make(url.Values)
 	params.Add("acc", account)
@@ -393,7 +393,7 @@ func (api *API) GetBalancesAt(account, startDate, endDate string, limit uint16) 
 //	followId   - next batch ID from response (optional)
 //	limit      - number of records per batch (default 20), max 500, recommended no more than 100
 func (api *API) GetTransactionsAt(account, startDate, endDate string, limit uint16) (r ResponseWrapper[[]TransactionStatement], err error) {
-	apiURL := API_URL + "/statements/transactions"
+	apiURL := URL_API_CORPORATE + "/statements/transactions"
 
 	params := make(url.Values)
 	params.Add("acc", account)
@@ -432,7 +432,7 @@ func (api *API) GetTransactionsAt(account, startDate, endDate string, limit uint
 //	account - bank account (IBAN format)
 //	limit   - data limit (per request)
 func (api *API) GetInterimTransactions(account string, limit uint16) (r ResponseWrapper[[]TransactionStatement], err error) {
-	apiURL := API_URL + "/statements/transactions/interim"
+	apiURL := URL_API_CORPORATE + "/statements/transactions/interim"
 
 	params := make(url.Values)
 	params.Add("acc", account)
@@ -466,7 +466,7 @@ func (api *API) GetInterimTransactions(account string, limit uint16) (r Response
 //	account - bank account (IBAN format)
 //	limit   - data limit (per request)
 func (api *API) GetFinalTransactions(account string, limit uint16) (r ResponseWrapper[[]TransactionStatement], err error) {
-	apiURL := API_URL + "/statements/transactions/final"
+	apiURL := URL_API_CORPORATE + "/statements/transactions/final"
 
 	params := make(url.Values)
 	params.Add("acc", account)

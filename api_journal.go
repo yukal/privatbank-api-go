@@ -28,7 +28,7 @@ import (
 //	  ...
 //	]
 func (a *API) GetPaysheetsJournal() (resp *http.Response, err error) {
-	apiURL := API_URL + "/paysheets/journal"
+	apiURL := URL_API_CORPORATE + "/paysheets/journal"
 
 	if resp, err = a.httpAgent.Get(apiURL); err != nil {
 		return
@@ -42,7 +42,7 @@ func (a *API) GetPaysheetsJournal() (resp *http.Response, err error) {
 func (a *API) GetJournalInbox(dateBegin, dateEnd string) (resp *http.Response, err error) {
 	var payload io.Reader
 
-	apiURL := API_URL + "/proxy/edoc/journal/inbox"
+	apiURL := URL_API_CORPORATE + "/proxy/edoc/journal/inbox"
 	payloadData := map[string]string{
 		"dateBegin": dateBegin,
 		"dateEnd":   dateEnd,
@@ -65,7 +65,7 @@ func (a *API) GetJournalInbox(dateBegin, dateEnd string) (resp *http.Response, e
 func (a *API) GetJournalOutbox(dateBegin, dateEnd string) (resp *http.Response, err error) {
 	var payload io.Reader
 
-	apiURL := API_URL + "/proxy/edoc/journal/outbox"
+	apiURL := URL_API_CORPORATE + "/proxy/edoc/journal/outbox"
 	payloadData := map[string]string{
 		"dateBegin": dateBegin,
 		"dateEnd":   dateEnd,
@@ -89,7 +89,7 @@ func (a *API) GetJournalOutbox(dateBegin, dateEnd string) (resp *http.Response, 
 func (a *API) GetJournalAll(dateBegin, dateEnd string) (resp *http.Response, err error) {
 	var payload io.Reader
 
-	apiURL := API_URL + "/proxy/edoc/journal/all"
+	apiURL := URL_API_CORPORATE + "/proxy/edoc/journal/all"
 	payloadData := map[string]string{
 		"dateBegin": dateBegin,
 		"dateEnd":   dateEnd,

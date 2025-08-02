@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	API_URL = "https://acp.privatbank.ua/api"
+	URL_API_CORPORATE = "https://acp.privatbank.ua/api"
 
 	// Response Status Codes
 
@@ -125,7 +125,7 @@ func (a *API) logResponse(resp *http.Response) {
 }
 
 func buildApiURL(apiPath string, queryParams url.Values) string {
-	return API_URL + apiPath + "?" + queryParams.Encode()
+	return URL_API_CORPORATE + apiPath + "?" + queryParams.Encode()
 }
 
 func toJSONReader(payload any) (r *bytes.Reader, err error) {

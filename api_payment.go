@@ -32,7 +32,7 @@ func (a *API) GetPaymentInfo(paymentRef string) (resp *http.Response, err error)
 func (a *API) GetReceipt(account, reference, refn string) (resp *http.Response, err error) {
 	var payload io.Reader
 
-	apiURL := API_URL + "/paysheets/print_receipt"
+	apiURL := URL_API_CORPORATE + "/paysheets/print_receipt"
 	payloadData := map[string]any{
 		"transactions": []map[string]string{
 			{
@@ -76,7 +76,7 @@ func (a *API) GetReceipt(account, reference, refn string) (resp *http.Response, 
 func (a *API) GetMultipleReceipts(transactions []map[string]string, perPage uint8) (resp *http.Response, err error) {
 	var payload io.Reader
 
-	apiURL := API_URL + "/paysheets/print_receipt"
+	apiURL := URL_API_CORPORATE + "/paysheets/print_receipt"
 	payloadData := map[string]any{
 		"transactions": transactions,
 		"perPage":      min(max(perPage, 1), 4), // min 1 .. max 4
